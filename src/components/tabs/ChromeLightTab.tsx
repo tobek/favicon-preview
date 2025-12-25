@@ -41,10 +41,10 @@ export function ChromeLightTab({ favicon, title, isActive = false, isCollapsed =
             ></div>
           </div>
           <button
-            className="w-[18px] h-[18px] flex-shrink-0 hover:bg-[#c4c7cc] rounded flex items-center justify-center transition-colors"
+            className="w-[18px] h-[18px] flex-shrink-0 hover:bg-[#c4c7cc] rounded flex items-center justify-center transition-colors self-center"
             aria-label="Close tab"
           >
-            <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none" className="mt-[1px]">
               <path d="M1 1L7 7M1 7L7 1" stroke="#5f6368" strokeWidth="1.2" strokeLinecap="round"/>
             </svg>
           </button>
