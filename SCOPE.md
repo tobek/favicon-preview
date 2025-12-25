@@ -200,6 +200,23 @@ A static web app that previews favicons in realistic browser tab contexts, allow
 
 **All v0.3.1 features completed and tested successfully!**
 
+### Completed (v0.3.2)
+
+#### Drag-and-Drop Improvements ✓
+1. **Full-Page Drop Target** ✓
+   - [x] Accept dropped files anywhere on the page (not just upload section)
+   - [x] Entire window becomes drop zone when dragging files
+
+2. **Drag Overlay Effect** ✓
+   - [x] Show full-page visual overlay when dragging files over the window
+   - [x] Semi-transparent backdrop with blur effect
+   - [x] Dashed blue border around edges
+   - [x] Large upload icon and "Drop favicon files here" message in center
+   - [x] Overlay adapts to dark/light mode
+   - [x] Proper drag state management to prevent flickering
+
+**All v0.3.2 features completed and tested successfully!**
+
 ### Future Features (v1.0)
 - Shareable links with encoded favicon data or upload to some service - discuss
 - Improve visual fidelity based on user feedback
@@ -207,3 +224,4 @@ A static web app that previews favicons in realistic browser tab contexts, allow
     - Check Safari too-long title truncation style
 - Export as image/screenshot
 - More tab contexts if needed
+- There is still a tiny bit of jank with the tab title overflow fade out gradient on hover/activate of tab, the gradient is briefly slightly visible - is there another way to implement this where the title actually fades out instead of using a gradient mask of the same color as what's behind it?

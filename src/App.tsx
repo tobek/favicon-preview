@@ -137,7 +137,9 @@ function App() {
   const [chromeColorTheme, setChromeColorTheme] = useState('#3d5f5a');
   const [activeTabIndex, setActiveTabIndex] = useState(1); // 2nd tab is initially active
   const [uploadedFavicons, setUploadedFavicons] = useState<UploadedFavicon[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dragCounterRef = useRef(0);
 
   // Merge uploaded favicons with dummy tabs
   const allTabs = mergeFavicons(DUMMY_TABS, uploadedFavicons);
@@ -192,7 +194,25 @@ function App() {
     }
   };
 
-  // Handle drag and drop
+  // Handle drag and drop - full page
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current++;
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dragCounterRef.current--;
+    if (dragCounterRef.current === 0) {
+      setIsDragging(false);
+    }
+  };
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -201,6 +221,8 @@ function App() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    dragCounterRef.current = 0;
+    setIsDragging(false);
     handleFileUpload(e.dataTransfer.files);
   };
 
@@ -217,11 +239,49 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen p-8 transition-colors ${
-      isDarkMode
-        ? 'bg-gradient-to-br from-slate-900 to-slate-800'
-        : 'bg-gradient-to-br from-slate-50 to-slate-100'
-    }`}>
+    <div
+      className={`min-h-screen p-8 transition-colors ${
+        isDarkMode
+          ? 'bg-gradient-to-br from-slate-900 to-slate-800'
+          : 'bg-gradient-to-br from-slate-50 to-slate-100'
+      }`}
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Full-page drag overlay */}
+      {isDragging && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
+          <div className={`absolute inset-0 transition-colors ${
+            isDarkMode
+              ? 'bg-slate-900/90 backdrop-blur-sm'
+              : 'bg-slate-100/90 backdrop-blur-sm'
+          }`}>
+            <div className={`absolute inset-0 border-4 border-dashed m-4 rounded-2xl ${
+              isDarkMode ? 'border-slate-600' : 'border-slate-300'
+            }`}></div>
+          </div>
+          <div className={`relative z-10 flex flex-col items-center gap-4 ${
+            isDarkMode ? 'text-slate-100' : 'text-slate-900'
+          }`}>
+            <svg
+              width="64"
+              height="64"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              className={isDarkMode ? 'text-slate-400' : 'text-slate-600'}
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <polyline points="17 8 12 3 7 8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <line x1="12" y1="3" x2="12" y2="15" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <p className="text-2xl font-semibold">Drop favicon files anywhere</p>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto space-y-8 relative">
         {/* Dark/Light Mode Toggle - Top Right */}
         <button
@@ -290,10 +350,7 @@ function App() {
           isDarkMode
             ? 'border-slate-600 bg-slate-800/50'
             : 'border-slate-300 bg-slate-50'
-        }`}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-        >
+        }`}>
           <div className="space-y-4">
             <div className="text-center">
               <input
