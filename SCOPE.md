@@ -217,6 +217,23 @@ A static web app that previews favicons in realistic browser tab contexts, allow
 
 **All v0.3.2 features completed and tested successfully!**
 
+### Completed (v0.3.3)
+
+#### Favicon Preview in Browser Tab ✓
+1. **Eye Icon for Manual Preview** ✓
+   - [x] Add eye icon button next to pencil and trash icons for each uploaded favicon
+   - [x] Clicking eye icon previews that favicon in the actual browser tab
+   - [x] Uses inline SVG in Feather/Lucide Icons style
+   - [x] Includes hover states and tooltip
+
+2. **Automatic Preview on Upload** ✓
+   - [x] Automatically set uploaded favicon as browser tab icon
+   - [x] When uploading multiple favicons, use the last one
+   - [x] Works for both drag-drop and file picker uploads
+   - [x] Provides immediate visual feedback in real browser context
+
+**All v0.3.3 features completed and tested successfully!**
+
 ### Future Features (v1.0)
 - Shareable links with encoded favicon data or upload to some service - discuss
 - Improve visual fidelity based on user feedback
