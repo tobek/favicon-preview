@@ -72,6 +72,22 @@ npm run preview
 npm run lint
 ```
 
+## Visual Testing
+
+Use the `webapp-testing` skill to verify visual appearance after making UI changes:
+
+```bash
+# Example: Take a screenshot to verify changes
+claude skill webapp-testing
+# Then write a Playwright script to capture screenshots
+```
+
+**When to use webapp-testing:**
+- After implementing visual/UI changes to verify appearance
+- Before committing significant UI updates
+- Focus on visual verification; manual interaction testing is more efficient for UX
+- Use full-page screenshots to capture all preview contexts at once
+
 ## Design Decisions
 
 **Browser Scope:** Start with "generic modern browser tab" aesthetic. Only add browser-specific variants (Chrome vs Safari vs Firefox) if research shows meaningful visual differences worth previewing.

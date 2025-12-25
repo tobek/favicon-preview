@@ -167,7 +167,29 @@ function App() {
       });
     }
 
-    setUploadedFavicons([...uploadedFavicons, ...newFavicons]);
+    if (newFavicons.length > 0) {
+      const updatedFavicons = [...uploadedFavicons, ...newFavicons];
+      setUploadedFavicons(updatedFavicons);
+
+      // Calculate which tab position the first new favicon will occupy
+      const currentUploadCount = uploadedFavicons.length;
+      const newUploadCount = updatedFavicons.length;
+      const baseCount = DUMMY_TABS.length;
+      const totalTabs = Math.max(baseCount, newUploadCount);
+      const middle = Math.floor(totalTabs / 2);
+
+      // Calculate position for the first new favicon using middle-outward pattern
+      const i = currentUploadCount;
+      let position: number;
+      if (i % 2 === 0) {
+        position = middle + Math.floor(i / 2);
+      } else {
+        position = middle - Math.ceil(i / 2);
+      }
+
+      // Set this tab as active
+      setActiveTabIndex(position);
+    }
   };
 
   // Handle drag and drop
@@ -308,201 +330,208 @@ function App() {
                   Uploaded Favicons ({uploadedFavicons.length})
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {uploadedFavicons.map((favicon) => (
-                    <div
-                      key={favicon.id}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                        isDarkMode
-                          ? 'bg-slate-700'
-                          : 'bg-white border border-slate-200'
-                      }`}
-                    >
-                      <img src={favicon.dataUrl} alt="" className="w-4 h-4" />
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="text"
-                          value={favicon.title}
-                          onChange={(e) => updateFaviconTitle(favicon.id, e.target.value)}
-                          className={`text-sm px-1 py-0.5 rounded border-none outline-none bg-transparent transition-colors ${
-                            isDarkMode ? 'text-slate-200' : 'text-slate-900'
-                          }`}
-                          style={{ width: `${Math.max(favicon.title.length * 8, 60)}px` }}
-                        />
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`flex-shrink-0 transition-colors ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                          <path d="M12 20h9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <button
-                        onClick={() => removeFavicon(favicon.id)}
-                        className={`hover:text-red-500 transition-colors ${
-                          isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                  {uploadedFavicons.map((favicon) => {
+                    const inputId = `title-input-${favicon.id}`;
+                    return (
+                      <div
+                        key={favicon.id}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                          isDarkMode
+                            ? 'bg-slate-700'
+                            : 'bg-white border border-slate-200'
                         }`}
-                        aria-label="Remove favicon"
                       >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6"></polyline>
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                          <line x1="10" y1="11" x2="10" y2="17"></line>
-                          <line x1="14" y1="11" x2="14" y2="17"></line>
-                        </svg>
-                      </button>
-                    </div>
-                  ))}
+                        <img src={favicon.dataUrl} alt="" className="w-4 h-4" />
+                        <div className="flex items-center gap-1">
+                          <input
+                            id={inputId}
+                            type="text"
+                            value={favicon.title}
+                            onChange={(e) => updateFaviconTitle(favicon.id, e.target.value)}
+                            className={`text-sm px-1 py-0.5 rounded border-none outline-none bg-transparent transition-colors ${
+                              isDarkMode ? 'text-slate-200' : 'text-slate-900'
+                            }`}
+                            style={{ width: `${Math.max(favicon.title.length * 8, 60)}px` }}
+                          />
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            className={`flex-shrink-0 transition-colors cursor-pointer ${isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'}`}
+                            onClick={() => document.getElementById(inputId)?.focus()}
+                          >
+                            <path d="M12 20h9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        </div>
+                        <button
+                          onClick={() => removeFavicon(favicon.id)}
+                          className={`cursor-pointer hover:text-red-500 transition-colors ${
+                            isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                          }`}
+                          aria-label="Remove favicon"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Chrome Dark */}
-        <div className="space-y-3">
-          <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
-            isDarkMode ? 'text-slate-400' : 'text-slate-700'
-          }`}>
-            Chrome - Dark Mode
-          </h2>
-          <div className="bg-[#202124] rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <div className="flex items-end gap-[2px] px-2 pt-2 bg-[#202124] min-w-max">
-                {allTabs.map((tab, i) => (
-                  <ChromeDarkTab
-                    key={i}
-                    favicon={tab.icon}
-                    title={tab.title}
-                    isActive={i === activeTabIndex}
-                    isCollapsed={isCollapsed}
-                    onClick={() => setActiveTabIndex(i)}
-                  />
-                ))}
+        {/* Preview Rows - Single Scrollable Container */}
+        <div className="overflow-x-auto">
+          <div className="min-w-max space-y-8 pb-4">
+            {/* Chrome Dark */}
+            <div className="space-y-3">
+              <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-700'
+              }`}>
+                Chrome - Dark Mode
+              </h2>
+              <div className="bg-[#202124] rounded-lg overflow-hidden">
+                <div className="flex items-end gap-[2px] px-2 pt-2 bg-[#202124] min-w-max">
+                  {allTabs.map((tab, i) => (
+                    <ChromeDarkTab
+                      key={i}
+                      favicon={tab.icon}
+                      title={tab.title}
+                      isActive={i === activeTabIndex}
+                      isCollapsed={isCollapsed}
+                      onClick={() => setActiveTabIndex(i)}
+                    />
+                  ))}
+                </div>
+                <div className="h-3 bg-[#35363a]"></div>
               </div>
             </div>
-            <div className="h-3 bg-[#35363a]"></div>
-          </div>
-        </div>
 
-        {/* Chrome Light */}
-        <div className="space-y-3">
-          <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
-            isDarkMode ? 'text-slate-400' : 'text-slate-700'
-          }`}>
-            Chrome - Light Mode
-          </h2>
-          <div className="bg-[#dee1e6] rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <div className="flex items-end gap-[2px] px-2 pt-2 bg-[#dee1e6] min-w-max">
-                {allTabs.map((tab, i) => (
-                  <ChromeLightTab
-                    key={i}
-                    favicon={tab.icon}
-                    title={tab.title}
-                    isActive={i === activeTabIndex}
-                    isCollapsed={isCollapsed}
-                    onClick={() => setActiveTabIndex(i)}
-                  />
-                ))}
+            {/* Chrome Light */}
+            <div className="space-y-3">
+              <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-700'
+              }`}>
+                Chrome - Light Mode
+              </h2>
+              <div className="bg-[#dee1e6] rounded-lg overflow-hidden">
+                <div className="flex items-end gap-[2px] px-2 pt-2 bg-[#dee1e6] min-w-max">
+                  {allTabs.map((tab, i) => (
+                    <ChromeLightTab
+                      key={i}
+                      favicon={tab.icon}
+                      title={tab.title}
+                      isActive={i === activeTabIndex}
+                      isCollapsed={isCollapsed}
+                      onClick={() => setActiveTabIndex(i)}
+                    />
+                  ))}
+                </div>
+                <div className="h-3 bg-white"></div>
               </div>
             </div>
-            <div className="h-3 bg-white"></div>
-          </div>
-        </div>
 
-        {/* Chrome Color */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
-              isDarkMode ? 'text-slate-400' : 'text-slate-700'
-            }`}>
-              Chrome - Color Theme
-            </h2>
-            <label className="flex items-center gap-2 cursor-pointer group">
-              <input
-                type="color"
-                value={chromeColorTheme}
-                onChange={(e) => setChromeColorTheme(e.target.value)}
-                className="w-8 h-8 rounded cursor-pointer border-none"
-                title="Pick a theme color"
-              />
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-colors ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-                <path d="M12 20h9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </label>
-          </div>
-          <div
-            className="rounded-lg overflow-hidden"
-            style={{ backgroundColor: darkenColor(chromeColorTheme, 0.2) }}
-          >
-            <div className="overflow-x-auto">
+            {/* Chrome Color */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
+                  isDarkMode ? 'text-slate-400' : 'text-slate-700'
+                }`}>
+                  Chrome - Color Theme
+                </h2>
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input
+                    type="color"
+                    value={chromeColorTheme}
+                    onChange={(e) => setChromeColorTheme(e.target.value)}
+                    className="w-8 h-8 rounded cursor-pointer border-none"
+                    title="Pick a theme color"
+                  />
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-colors ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
+                    <path d="M12 20h9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </label>
+              </div>
               <div
-                className="flex items-end gap-[2px] px-2 pt-2 min-w-max"
+                className="rounded-lg overflow-hidden"
                 style={{ backgroundColor: darkenColor(chromeColorTheme, 0.2) }}
               >
-                {allTabs.map((tab, i) => (
-                  <ChromeColorTab
-                    key={i}
-                    favicon={tab.icon}
-                    title={tab.title}
-                    isActive={i === activeTabIndex}
-                    isCollapsed={isCollapsed}
-                    bgColor={chromeColorTheme}
-                    onClick={() => setActiveTabIndex(i)}
-                  />
-                ))}
+                <div
+                  className="flex items-end gap-[2px] px-2 pt-2 min-w-max"
+                  style={{ backgroundColor: darkenColor(chromeColorTheme, 0.2) }}
+                >
+                  {allTabs.map((tab, i) => (
+                    <ChromeColorTab
+                      key={i}
+                      favicon={tab.icon}
+                      title={tab.title}
+                      isActive={i === activeTabIndex}
+                      isCollapsed={isCollapsed}
+                      bgColor={chromeColorTheme}
+                      onClick={() => setActiveTabIndex(i)}
+                    />
+                  ))}
+                </div>
+                <div
+                  className="h-3"
+                  style={{ backgroundColor: lightenColor(chromeColorTheme, 0.15) }}
+                ></div>
               </div>
             </div>
-            <div
-              className="h-3"
-              style={{ backgroundColor: lightenColor(chromeColorTheme, 0.15) }}
-            ></div>
-          </div>
-        </div>
 
-        {/* Safari Tahoe Dark */}
-        <div className="space-y-3">
-          <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
-            isDarkMode ? 'text-slate-400' : 'text-slate-700'
-          }`}>
-            Safari Tahoe - Dark Mode
-          </h2>
-          <div className="bg-[#1c1c1e] p-3 rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <div className="flex items-center gap-1.5 min-w-max">
-                {allTabs.map((tab, i) => (
-                  <SafariTahoeDarkTab
-                    key={i}
-                    favicon={tab.icon}
-                    title={tab.title}
-                    isActive={i === activeTabIndex}
-                    isCollapsed={isCollapsed}
-                    onClick={() => setActiveTabIndex(i)}
-                  />
-                ))}
+            {/* Safari Tahoe Dark */}
+            <div className="space-y-3">
+              <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-700'
+              }`}>
+                Safari Tahoe - Dark Mode
+              </h2>
+              <div className="bg-[#1c1c1e] p-3 rounded-lg overflow-hidden">
+                <div className="flex items-center gap-1.5 min-w-max">
+                  {allTabs.map((tab, i) => (
+                    <SafariTahoeDarkTab
+                      key={i}
+                      favicon={tab.icon}
+                      title={tab.title}
+                      isActive={i === activeTabIndex}
+                      isCollapsed={isCollapsed}
+                      onClick={() => setActiveTabIndex(i)}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Safari Tahoe Light */}
-        <div className="space-y-3">
-          <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
-            isDarkMode ? 'text-slate-400' : 'text-slate-700'
-          }`}>
-            Safari Tahoe - Light Mode
-          </h2>
-          <div className="bg-[#e8e8ed] p-3 rounded-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <div className="flex items-center gap-1.5 min-w-max">
-                {allTabs.map((tab, i) => (
-                  <SafariTahoeLightTab
-                    key={i}
-                    favicon={tab.icon}
-                    title={tab.title}
-                    isActive={i === activeTabIndex}
-                    isCollapsed={isCollapsed}
-                    onClick={() => setActiveTabIndex(i)}
-                  />
-                ))}
+            {/* Safari Tahoe Light */}
+            <div className="space-y-3">
+              <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-700'
+              }`}>
+                Safari Tahoe - Light Mode
+              </h2>
+              <div className="bg-[#e8e8ed] p-3 rounded-lg overflow-hidden">
+                <div className="flex items-center gap-1.5 min-w-max">
+                  {allTabs.map((tab, i) => (
+                    <SafariTahoeLightTab
+                      key={i}
+                      favicon={tab.icon}
+                      title={tab.title}
+                      isActive={i === activeTabIndex}
+                      isCollapsed={isCollapsed}
+                      onClick={() => setActiveTabIndex(i)}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>

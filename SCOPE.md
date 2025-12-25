@@ -178,25 +178,27 @@ A static web app that previews favicons in realistic browser tab contexts, allow
 
 **All v0.3 features completed and tested successfully!**
 
-### Next Steps (v0.3.1)
+### Completed (v0.3.1)
 
-#### Bug Fixes & Refinements
-1. **Horizontal Scroll Behavior**
-   - [ ] Move horizontal scroll from per-row to whole section containing all rows
-   - [ ] Single scrollbar should control all tab preview rows together
+#### Bug Fixes & Refinements ✓
+1. **Horizontal Scroll Behavior** ✓
+   - [x] Move horizontal scroll from per-row to whole section containing all rows
+   - [x] Single scrollbar should control all tab preview rows together
 
-2. **Chrome Tab Close Button**
-   - [ ] Make X close button always visible on Chrome tabs (not just on hover)
-   - [ ] Reference: `chrome-color-bg.png` shows expected behavior
+2. **Chrome Tab Close Button** ✓
+   - [x] Make X close button always visible on Chrome tabs (not just on hover)
+   - [x] Reference: `chrome-color-bg.png` shows expected behavior
 
-3. **Favicon Title Pencil Icon Interaction**
-   - [ ] Add hover state to pencil icon (cursor pointer)
-   - [ ] Make pencil icon clickable to focus/start editing the title input
-   - [ ] Match interaction pattern of trash icon
+3. **Favicon Title Pencil Icon Interaction** ✓
+   - [x] Add hover state to pencil icon (cursor pointer)
+   - [x] Make pencil icon clickable to focus/start editing the title input
+   - [x] Match interaction pattern of trash icon
 
-4. **Tab Title Fadeout on Hover**
-   - [ ] Fix gradient becoming visible on tab hover
-   - [ ] Need different fade gradient for hover state to match hover background color
+4. **Tab Title Fadeout on Hover** ✓
+   - [x] Fix gradient becoming visible on tab hover
+   - [x] Need different fade gradient for hover state to match hover background color
+
+**All v0.3.1 features completed and tested successfully!**
 
 ### Future Features (v1.0)
 - Shareable links with encoded favicon data or upload to some service - discuss

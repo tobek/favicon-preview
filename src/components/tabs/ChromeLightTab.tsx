@@ -25,12 +25,23 @@ export function ChromeLightTab({ favicon, title, isActive = false, isCollapsed =
             <span className="text-[#202124] text-[12px] whitespace-nowrap select-none">
               {title}
             </span>
-            <div className="absolute top-0 right-0 bottom-0 w-8 pointer-events-none" style={{
-              background: isActive ? 'linear-gradient(to left, white, transparent)' : 'linear-gradient(to left, #dee1e6, transparent)'
-            }}></div>
+            {/* Gradient for normal state */}
+            <div
+              className="absolute top-0 right-0 bottom-0 w-8 pointer-events-none transition-opacity group-hover:opacity-0"
+              style={{
+                background: isActive ? 'linear-gradient(to left, white, transparent)' : 'linear-gradient(to left, #dee1e6, transparent)'
+              }}
+            ></div>
+            {/* Gradient for hover state */}
+            <div
+              className="absolute top-0 right-0 bottom-0 w-8 pointer-events-none transition-opacity opacity-0 group-hover:opacity-100"
+              style={{
+                background: isActive ? 'linear-gradient(to left, white, transparent)' : 'linear-gradient(to left, #d3d6db, transparent)'
+              }}
+            ></div>
           </div>
           <button
-            className="w-[18px] h-[18px] flex-shrink-0 opacity-0 group-hover:opacity-100 hover:bg-[#c4c7cc] rounded flex items-center justify-center transition-opacity"
+            className="w-[18px] h-[18px] flex-shrink-0 hover:bg-[#c4c7cc] rounded flex items-center justify-center transition-colors"
             aria-label="Close tab"
           >
             <svg width="8" height="8" viewBox="0 0 8 8" fill="none">

@@ -25,12 +25,23 @@ export function ChromeDarkTab({ favicon, title, isActive = false, isCollapsed = 
             <span className="text-[#e8eaed] text-[12px] whitespace-nowrap select-none">
               {title}
             </span>
-            <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#35363a] to-transparent pointer-events-none" style={{
-              background: isActive ? 'linear-gradient(to left, #35363a, transparent)' : 'linear-gradient(to left, #292b2e, transparent)'
-            }}></div>
+            {/* Gradient for normal state */}
+            <div
+              className="absolute top-0 right-0 bottom-0 w-8 pointer-events-none transition-opacity group-hover:opacity-0"
+              style={{
+                background: isActive ? 'linear-gradient(to left, #35363a, transparent)' : 'linear-gradient(to left, #292b2e, transparent)'
+              }}
+            ></div>
+            {/* Gradient for hover state */}
+            <div
+              className="absolute top-0 right-0 bottom-0 w-8 pointer-events-none transition-opacity opacity-0 group-hover:opacity-100"
+              style={{
+                background: isActive ? 'linear-gradient(to left, #35363a, transparent)' : 'linear-gradient(to left, #313336, transparent)'
+              }}
+            ></div>
           </div>
           <button
-            className="w-[18px] h-[18px] flex-shrink-0 opacity-0 group-hover:opacity-100 hover:bg-[#5f6368] rounded flex items-center justify-center transition-opacity"
+            className="w-[18px] h-[18px] flex-shrink-0 hover:bg-[#5f6368] rounded flex items-center justify-center transition-colors"
             aria-label="Close tab"
           >
             <svg width="8" height="8" viewBox="0 0 8 8" fill="none">

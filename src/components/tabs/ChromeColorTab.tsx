@@ -61,6 +61,8 @@ export function ChromeColorTab({
             >
               {title}
             </span>
+            {/* Note: ChromeColorTab doesn't have a separate hover background color,
+                 so the gradient doesn't need to change on hover */}
             <div
               className="absolute top-0 right-0 bottom-0 w-8 pointer-events-none"
               style={{
@@ -71,7 +73,7 @@ export function ChromeColorTab({
             ></div>
           </div>
           <button
-            className={`w-[18px] h-[18px] flex-shrink-0 opacity-0 group-hover:opacity-100 rounded flex items-center justify-center transition-opacity ${
+            className={`w-[18px] h-[18px] flex-shrink-0 rounded flex items-center justify-center transition-colors ${
               useLightText ? 'hover:bg-white/20' : 'hover:bg-black/20'
             }`}
             aria-label="Close tab"
