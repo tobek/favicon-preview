@@ -7,6 +7,7 @@ import {
   SafariTahoeLightTab
 } from './components/tabs/index.ts';
 import type { UploadedFavicon } from './types.ts';
+import { Tooltip } from './components/Tooltip';
 
 // Example favicons - using public URLs for now
 const EXAMPLE_FAVICONS = [
@@ -22,9 +23,6 @@ const DUMMY_TABS = [
   { icon: 'https://www.youtube.com/favicon.ico', title: 'YouTube' },
   { icon: 'https://www.reddit.com/favicon.ico', title: 'Reddit' },
   { icon: 'https://stackoverflow.com/favicon.ico', title: 'Stack Overflow' },
-  { icon: 'https://www.wikipedia.org/favicon.ico', title: 'Wikipedia' },
-  { icon: 'https://www.twitter.com/favicon.ico', title: 'Twitter' },
-  { icon: 'https://www.linkedin.com/favicon.ico', title: 'LinkedIn' },
 ];
 
 // Detect initial dark mode preference
@@ -302,7 +300,7 @@ function App() {
         {/* Dark/Light Mode Toggle - Top Right */}
         <button
           onClick={() => setIsDarkMode(!isDarkMode)}
-          className={`absolute top-0 right-0 p-2 rounded-lg transition-colors ${
+          className={`absolute top-0 right-0 p-2 rounded-lg transition-colors hidden md:block cursor-pointer ${
             isDarkMode
               ? 'bg-slate-700 hover:bg-slate-600'
               : 'bg-slate-200 hover:bg-slate-300'
@@ -426,46 +424,51 @@ function App() {
                             }`}
                             style={{ width: `${Math.max(favicon.title.length * 8, 60)}px` }}
                           />
-                          <svg
-                            width="12"
-                            height="12"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            className={`flex-shrink-0 transition-colors cursor-pointer ${isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'}`}
-                            onClick={() => document.getElementById(inputId)?.focus()}
-                          >
-                            <path d="M12 20h9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
+                          <Tooltip content="Edit title">
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              className={`flex-shrink-0 transition-colors cursor-pointer ${isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'}`}
+                              onClick={() => document.getElementById(inputId)?.focus()}
+                            >
+                              <path d="M12 20h9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          </Tooltip>
                         </div>
-                        <button
-                          onClick={() => previewFaviconInTab(favicon.dataUrl)}
-                          className={`cursor-pointer transition-colors ${
-                            isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'
-                          }`}
-                          aria-label="Preview in browser tab"
-                          title="Preview in browser tab"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                          </svg>
-                        </button>
-                        <button
-                          onClick={() => removeFavicon(favicon.id)}
-                          className={`cursor-pointer hover:text-red-500 transition-colors ${
-                            isDarkMode ? 'text-slate-400' : 'text-slate-500'
-                          }`}
-                          aria-label="Remove favicon"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            <line x1="10" y1="11" x2="10" y2="17"></line>
-                            <line x1="14" y1="11" x2="14" y2="17"></line>
-                          </svg>
-                        </button>
+                        <Tooltip content="Preview in browser tab">
+                          <button
+                            onClick={() => previewFaviconInTab(favicon.dataUrl)}
+                            className={`cursor-pointer transition-colors ${
+                              isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                            aria-label="Preview in browser tab"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                              <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                          </button>
+                        </Tooltip>
+                        <Tooltip content="Remove favicon">
+                          <button
+                            onClick={() => removeFavicon(favicon.id)}
+                            className={`cursor-pointer hover:text-red-500 transition-colors ${
+                              isDarkMode ? 'text-slate-400' : 'text-slate-500'
+                            }`}
+                            aria-label="Remove favicon"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6"></polyline>
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                              <line x1="10" y1="11" x2="10" y2="17"></line>
+                              <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                          </button>
+                        </Tooltip>
                       </div>
                     );
                   })}
@@ -580,7 +583,7 @@ function App() {
               <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
                 isDarkMode ? 'text-slate-400' : 'text-slate-700'
               }`}>
-                Safari Tahoe - Dark Mode
+                Safari - Dark Mode
               </h2>
               <div className="bg-[#1c1c1e] p-3 rounded-lg overflow-hidden">
                 <div className="flex items-center gap-1.5 min-w-max">
@@ -603,7 +606,7 @@ function App() {
               <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
                 isDarkMode ? 'text-slate-400' : 'text-slate-700'
               }`}>
-                Safari Tahoe - Light Mode
+                Safari - Light Mode
               </h2>
               <div className="bg-[#e8e8ed] p-3 rounded-lg overflow-hidden">
                 <div className="flex items-center gap-1.5 min-w-max">

@@ -234,6 +234,25 @@ A static web app that previews favicons in realistic browser tab contexts, allow
 
 **All v0.3.3 features completed and tested successfully!**
 
+### Completed (v0.4.0)
+
+#### UI/UX Improvements ✓
+1. **Instant Tooltips** ✓
+   - [x] Create custom CSS-based Tooltip component
+   - [x] Add instant-appearing tooltips to edit, preview, and remove icons
+   - [x] Replace slow browser title tooltips with smooth 150ms fade-in
+   - [x] Tooltips appear above icons with dark background and arrow pointer
+
+2. **Mobile Responsiveness** ✓
+   - [x] Hide dark/light mode toggle on mobile devices
+   - [x] Toggle only visible on medium screens and larger (768px+)
+
+3. **Default Tab Count Adjustment** ✓
+   - [x] Reduce default starting tabs from 8 to 5
+   - [x] More focused initial view: Google, GitHub, YouTube, Reddit, Stack Overflow
+
+**All v0.4.0 features completed and tested successfully!**
+
 ### Future Features (v1.0)
 - Shareable links with encoded favicon data or upload to some service - discuss
 - Improve visual fidelity based on user feedback
