@@ -3,4 +3,11 @@ export interface TabProps {
   title: string;
   isActive?: boolean;
   isCollapsed?: boolean;
+  onClick?: () => void;
+}
+
+export interface UploadedFavicon {
+  id: string;
+  dataUrl: string;
+  title: string;
 }

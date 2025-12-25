@@ -1,8 +1,9 @@
 import type { TabProps } from "../../types.ts";
 
-export function ChromeLightTab({ favicon, title, isActive = false, isCollapsed = false }: TabProps) {
+export function ChromeLightTab({ favicon, title, isActive = false, isCollapsed = false, onClick }: TabProps) {
   return (
     <div
+      onClick={onClick}
       className={`
         flex items-center gap-2 h-[34px] rounded-t-[8px] flex-shrink-0
         ${isActive
@@ -20,9 +21,14 @@ export function ChromeLightTab({ favicon, title, isActive = false, isCollapsed =
       />
       {!isCollapsed && (
         <>
-          <span className="text-[#202124] text-[12px] truncate flex-1 select-none">
-            {title}
-          </span>
+          <div className="flex-1 relative overflow-hidden">
+            <span className="text-[#202124] text-[12px] whitespace-nowrap select-none">
+              {title}
+            </span>
+            <div className="absolute top-0 right-0 bottom-0 w-8 pointer-events-none" style={{
+              background: isActive ? 'linear-gradient(to left, white, transparent)' : 'linear-gradient(to left, #dee1e6, transparent)'
+            }}></div>
+          </div>
           <button
             className="w-[18px] h-[18px] flex-shrink-0 opacity-0 group-hover:opacity-100 hover:bg-[#c4c7cc] rounded flex items-center justify-center transition-opacity"
             aria-label="Close tab"

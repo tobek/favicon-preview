@@ -1,8 +1,9 @@
 import type { TabProps } from "../../types.ts";
 
-export function SafariTahoeLightTab({ favicon, title, isActive = false, isCollapsed = false }: TabProps) {
+export function SafariTahoeLightTab({ favicon, title, isActive = false, isCollapsed = false, onClick }: TabProps) {
   return (
     <div
+      onClick={onClick}
       className={`
         flex items-center gap-2 h-[28px] rounded-[6px] flex-shrink-0
         ${isActive
@@ -19,9 +20,16 @@ export function SafariTahoeLightTab({ favicon, title, isActive = false, isCollap
         className="w-4 h-4 flex-shrink-0"
       />
       {!isCollapsed && (
-        <span className="text-[#1d1d1f] text-[11px] truncate flex-1 select-none font-medium">
-          {title}
-        </span>
+        <div className="flex-1 relative overflow-hidden">
+          <span className="text-[#1d1d1f] text-[11px] whitespace-nowrap select-none font-medium">
+            {title}
+          </span>
+          <div className="absolute top-0 right-0 bottom-0 w-6 pointer-events-none" style={{
+            background: isActive
+              ? 'linear-gradient(to left, rgba(255, 255, 255, 0.9), transparent)'
+              : 'linear-gradient(to left, rgba(245, 245, 247, 0.7), transparent)'
+          }}></div>
+        </div>
       )}
     </div>
   );

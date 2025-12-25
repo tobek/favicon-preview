@@ -1,8 +1,9 @@
 import type { TabProps } from "../../types.ts";
 
-export function ChromeDarkTab({ favicon, title, isActive = false, isCollapsed = false }: TabProps) {
+export function ChromeDarkTab({ favicon, title, isActive = false, isCollapsed = false, onClick }: TabProps) {
   return (
     <div
+      onClick={onClick}
       className={`
         flex items-center gap-2 h-[34px] rounded-t-[8px] flex-shrink-0
         ${isActive
@@ -20,9 +21,14 @@ export function ChromeDarkTab({ favicon, title, isActive = false, isCollapsed = 
       />
       {!isCollapsed && (
         <>
-          <span className="text-[#e8eaed] text-[12px] truncate flex-1 select-none">
-            {title}
-          </span>
+          <div className="flex-1 relative overflow-hidden">
+            <span className="text-[#e8eaed] text-[12px] whitespace-nowrap select-none">
+              {title}
+            </span>
+            <div className="absolute top-0 right-0 bottom-0 w-8 bg-gradient-to-l from-[#35363a] to-transparent pointer-events-none" style={{
+              background: isActive ? 'linear-gradient(to left, #35363a, transparent)' : 'linear-gradient(to left, #292b2e, transparent)'
+            }}></div>
+          </div>
           <button
             className="w-[18px] h-[18px] flex-shrink-0 opacity-0 group-hover:opacity-100 hover:bg-[#5f6368] rounded flex items-center justify-center transition-opacity"
             aria-label="Close tab"
