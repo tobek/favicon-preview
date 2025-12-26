@@ -5,7 +5,7 @@ export function ChromeLightTab({ favicon, title, isActive = false, isCollapsed =
     <div
       onClick={onClick}
       className={`
-        flex items-center gap-2 h-[34px] rounded-t-[8px] flex-shrink-0
+        flex items-center h-[34px] rounded-t-[8px] flex-shrink-0
         ${isActive
           ? "bg-white"
           : "bg-[#dee1e6] hover:bg-[#d3d6db]"
@@ -17,29 +17,19 @@ export function ChromeLightTab({ favicon, title, isActive = false, isCollapsed =
       <img
         src={favicon}
         alt={title}
-        className="w-4 h-4 flex-shrink-0"
+        className="w-4 h-4 flex-shrink-0 mr-2"
       />
       {!isCollapsed && (
         <>
-          <div className="flex-1 relative overflow-hidden">
-            <span className="text-[#202124] text-[12px] whitespace-nowrap select-none">
-              {title}
-            </span>
-            {/* Gradient for normal state */}
-            <div
-              className="absolute top-0 right-0 bottom-0 w-8 pointer-events-none transition-opacity group-hover:opacity-0"
-              style={{
-                background: isActive ? 'linear-gradient(to left, white, transparent)' : 'linear-gradient(to left, #dee1e6, transparent)'
-              }}
-            ></div>
-            {/* Gradient for hover state */}
-            <div
-              className="absolute top-0 right-0 bottom-0 w-8 pointer-events-none transition-opacity opacity-0 group-hover:opacity-100"
-              style={{
-                background: isActive ? 'linear-gradient(to left, white, transparent)' : 'linear-gradient(to left, #d3d6db, transparent)'
-              }}
-            ></div>
-          </div>
+          <span
+            className="flex-1 text-[#202124] text-[12px] whitespace-nowrap select-none overflow-hidden"
+            style={{
+              maskImage: 'linear-gradient(to right, black 60%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to right, black 60%, transparent 100%)'
+            }}
+          >
+            {title}
+          </span>
           <button
             className="w-[18px] h-[18px] flex-shrink-0 hover:bg-[#c4c7cc] rounded flex items-center justify-center transition-colors self-center"
             aria-label="Close tab"

@@ -39,7 +39,7 @@ export function ChromeColorTab({
     <div
       onClick={onClick}
       className={`
-        flex items-center gap-2 h-[34px] rounded-t-[8px] flex-shrink-0
+        flex items-center h-[34px] rounded-t-[8px] flex-shrink-0
         ${isCollapsed ? "w-[46px] justify-center px-0" : "w-[180px] px-3"}
         transition-all cursor-pointer group relative
       `}
@@ -50,28 +50,20 @@ export function ChromeColorTab({
       <img
         src={favicon}
         alt={title}
-        className="w-4 h-4 flex-shrink-0"
+        className="w-4 h-4 flex-shrink-0 mr-2"
       />
       {!isCollapsed && (
         <>
-          <div className="flex-1 relative overflow-hidden">
-            <span
-              className="text-[12px] whitespace-nowrap select-none"
-              style={{ color: textColor }}
-            >
-              {title}
-            </span>
-            {/* Note: ChromeColorTab doesn't have a separate hover background color,
-                 so the gradient doesn't need to change on hover */}
-            <div
-              className="absolute top-0 right-0 bottom-0 w-8 pointer-events-none"
-              style={{
-                background: isActive
-                  ? `linear-gradient(to left, ${bgColor}, transparent)`
-                  : `linear-gradient(to left, color-mix(in srgb, ${bgColor} 70%, black), transparent)`
-              }}
-            ></div>
-          </div>
+          <span
+            className="flex-1 text-[12px] whitespace-nowrap select-none overflow-hidden"
+            style={{
+              color: textColor,
+              maskImage: 'linear-gradient(to right, black 60%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to right, black 60%, transparent 100%)'
+            }}
+          >
+            {title}
+          </span>
           <button
             className={`w-[18px] h-[18px] flex-shrink-0 rounded flex items-center justify-center transition-colors self-center ${
               useLightText ? 'hover:bg-white/20' : 'hover:bg-black/20'

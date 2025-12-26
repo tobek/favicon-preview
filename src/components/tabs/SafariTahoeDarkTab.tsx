@@ -5,7 +5,7 @@ export function SafariTahoeDarkTab({ favicon, title, isActive = false, isCollaps
     <div
       onClick={onClick}
       className={`
-        flex items-center gap-2 h-[28px] rounded-[6px] flex-shrink-0
+        flex items-center h-[28px] rounded-[6px] flex-shrink-0
         ${isActive
           ? "bg-[#3a3a3c]/80 shadow-[inset_0_0_0_0.5px_rgba(255,255,255,0.1)]"
           : "bg-[#2c2c2e]/60 hover:bg-[#3a3a3c]/50"
@@ -17,33 +17,19 @@ export function SafariTahoeDarkTab({ favicon, title, isActive = false, isCollaps
       <img
         src={favicon}
         alt={title}
-        className="w-4 h-4 flex-shrink-0"
+        className="w-4 h-4 flex-shrink-0 mr-2"
       />
       {!isCollapsed && (
         <>
-          <div className="flex-1 relative overflow-hidden">
-            <span className="text-[#f5f5f7] text-[11px] whitespace-nowrap select-none font-medium">
-              {title}
-            </span>
-            {/* Gradient for normal state */}
-            <div
-              className="absolute top-0 right-0 bottom-0 w-6 pointer-events-none transition-opacity group-hover:opacity-0"
-              style={{
-                background: isActive
-                  ? 'linear-gradient(to left, rgba(58, 58, 60, 0.8), transparent)'
-                  : 'linear-gradient(to left, rgba(44, 44, 46, 0.6), transparent)'
-              }}
-            ></div>
-            {/* Gradient for hover state */}
-            <div
-              className="absolute top-0 right-0 bottom-0 w-6 pointer-events-none transition-opacity opacity-0 group-hover:opacity-100"
-              style={{
-                background: isActive
-                  ? 'linear-gradient(to left, rgba(58, 58, 60, 0.8), transparent)'
-                  : 'linear-gradient(to left, rgba(58, 58, 60, 0.5), transparent)'
-              }}
-            ></div>
-          </div>
+          <span
+            className="flex-1 text-[#f5f5f7] text-[11px] whitespace-nowrap select-none font-medium overflow-hidden"
+            style={{
+              maskImage: 'linear-gradient(to right, black 60%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to right, black 60%, transparent 100%)'
+            }}
+          >
+            {title}
+          </span>
           <button
             className="w-[16px] h-[16px] flex-shrink-0 hover:bg-white/20 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 self-center"
             aria-label="Close tab"
