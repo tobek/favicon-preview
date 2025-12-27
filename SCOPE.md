@@ -26,10 +26,9 @@ A static web app that previews favicons in realistic browser tab contexts, allow
 
 ## Future Features
 
-### Shareable Links
-- Generate shareable URLs that encode the uploaded favicons
-- Allow users to share preview context with team/clients
-- No backend storage needed (data in URL or localStorage)
+### Export as Image
+- Screenshot/export tab previews as PNG image
+- Share visual without needing hosted images
 
 ## Display Contexts (Finalized - v1)
 
@@ -76,9 +75,10 @@ A static web app that previews favicons in realistic browser tab contexts, allow
 ### Technical Decisions
 - [x] **ICO handling**: Browser native support, no conversion needed
 - [x] **State management**: React useState for collapse toggle
-- [ ] **Shareable links**: Planned for future (URL encoding or localStorage)
-- [ ] **File uploads**: Not yet implemented (currently uses static examples)
+- [x] **Shareable links**: Implemented (migrating from ImageKit to Firebase Storage)
+- [x] **File uploads**: Implemented with drag-drop and file picker
 - [ ] **Favicon rounding**: Needs investigation - inconsistent across sites
+- [x] **Image hosting**: Firebase Storage (upload-only security rules, no credentials exposed)
 
 ## Research Findings
 
@@ -253,8 +253,70 @@ A static web app that previews favicons in realistic browser tab contexts, allow
 
 **All v0.4.0 features completed and tested successfully!**
 
+### Completed (v0.5.0) - Partial
+
+#### Shareable Links (ImageKit - Being Replaced)
+1. **Image Compression** ✓
+   - [x] Client-side image compression (max 1024x1024, maintains aspect ratio)
+   - [x] Automatic retry logic with exponential backoff
+   - [x] Concurrent upload support (max 3 parallel)
+   - [x] Partial failure handling (share with successful uploads)
+
+2. **Share Button & URL Generation** ✓
+   - [x] Share button appears when favicons are uploaded
+   - [x] Uploads progress indicator
+   - [x] Minified base64-encoded JSON URLs (shorter keys for reduced URL length)
+   - [x] Share URL encodes: favicons (URLs + titles) + Chrome color theme
+   - [x] Copy-to-clipboard functionality with fallback
+   - [x] URL length warning for browser limits
+
+3. **Load from Shared URL** ✓
+   - [x] Automatic detection of share parameter on page load
+   - [x] Image URL validation to detect expired/missing images
+   - [x] Error banner for unavailable favicons
+   - [x] Loading indicator during shared state load
+   - [x] Restores Chrome color theme from shared URL
+
+4. **Download Favicons** ✓
+   - [x] Download button for each uploaded favicon
+   - [x] Downloads compressed version (smaller file size)
+   - [x] Sanitized filename based on favicon title
+
+5. **⚠️ ImageKit Security Issue**
+   - ImageKit requires private key in client code
+   - Private key grants delete access (not just upload)
+   - **Decision: Migrate to Firebase Storage**
+
+**See [SHARING-PLAN.md](./SHARING-PLAN.md) for detailed migration plan.**
+
+### Planned (v0.5.1) - Firebase Migration
+
+#### Replace ImageKit with Firebase Storage
+1. **Firebase Storage Integration**
+   - [ ] Create Firebase project and configure
+   - [ ] Firebase initialization (`src/firebase.ts`)
+   - [ ] Upload utility (`src/utils/firebaseUpload.ts`)
+   - [ ] Update ShareButton to use Firebase
+   - [ ] Delete ImageKit utility
+
+2. **Security Rules**
+   - [ ] Deploy upload-only security rules
+   - [ ] File size limit (500KB max)
+   - [ ] File type restriction (images only)
+   - [ ] No client delete access
+
+3. **Cleanup Strategy**
+   - [ ] Create cleanup script for 6-month expiration
+   - [ ] Document monthly cron job process
+
+**Why Firebase over ImageKit/S3:**
+- No credentials exposed (public Firebase config is designed to be public)
+- Security rules enforce upload-only (clients cannot delete)
+- File size/type limits in security rules
+- Free tier: 5GB storage, 1GB/day downloads
+- Pricing: ~$0/mo for 100-1000 MAU
+
 ### Future Features (v1.0)
-- Shareable links with encoded favicon data or upload to some service - discuss
 - Improve visual fidelity based on user feedback
     - Safari tabs fill available space I think?
     - Check Safari too-long title truncation style

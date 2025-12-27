@@ -10,6 +10,35 @@ A static web app for previewing favicons in realistic browser tab contexts. User
 
 **See SCOPE.md for detailed requirements, decisions, and research findings.**
 
+### Current Features (v0.5.0)
+
+**Core Functionality:**
+- Drag-drop and file picker favicon upload (.ico, .png, .svg, .webp)
+- 5 browser contexts: Chrome Dark/Light/Color, Safari Tahoe Dark/Light
+- Expanded/collapsed tab states with active/inactive styling
+- Editable favicon titles with fade-out truncation
+- Tab click activation (synchronized across all rows)
+- Horizontal scroll for overflow tabs
+
+**Customization:**
+- Dark/light page mode toggle (auto-detected from system preferences)
+- Chrome color theme picker with auto-generated shades
+- Dynamic tab count (starts with 5 example tabs, grows with uploads)
+
+**Sharing & Export:**
+- Share button generates URL with uploaded favicons
+- Client-side image compression (max 1024x1024)
+- ImageKit CDN hosting for shared images
+- Download button for each favicon (compressed PNG)
+- Load shared previews from URL
+- Error handling for expired/missing images
+
+**UI Polish:**
+- Instant tooltips (150ms fade-in) for all action icons
+- Full-page drag overlay with visual feedback
+- Browser tab favicon preview (eye icon + automatic on upload)
+- Mobile-responsive (hides mode toggle on small screens)
+
 ## Tech Stack
 
 - **React** - UI framework
@@ -26,27 +55,41 @@ Client-side only, no backend. File processing happens entirely in the browser us
 ### Component Structure
 
 **Main Components:**
-- `FaviconUploader` - Handles drag-drop and file picker for favicon uploads
-- `TabMockup` - Generic component rendering a single browser tab mockup
-  - Props: browser type, theme (light/dark), state (expanded/compressed), favicon
-  - CSS-based (not images) to allow easy theming
-- `PreviewRow` - Renders a horizontal row of tabs for one preview context
-  - Shows dummy favicons + uploaded favicon(s) side-by-side
-- `PreviewGrid` - Main orchestrator showing all preview row types
+- `App.tsx` - Main orchestrator with state management for uploads, themes, and sharing
+- `ShareButton.tsx` - Handles share flow (compress → upload → generate URL)
+- `Tooltip.tsx` - Custom CSS-based tooltip component with instant appearance
+- Tab components (specialized per browser/theme):
+  - `ChromeDarkTab.tsx` - Chrome dark theme tabs
+  - `ChromeLightTab.tsx` - Chrome light theme tabs
+  - `ChromeColorTab.tsx` - Chrome with customizable color theme
+  - `SafariTahoeDarkTab.tsx` - Safari dark theme floating tabs
+  - `SafariTahoeLightTab.tsx` - Safari light theme floating tabs
+
+**Utility Modules:**
+- `src/utils/imageCompression.ts` - Client-side image compression (Canvas API)
+- `src/utils/imagekitUpload.ts` - ImageKit CDN upload with retry logic
+- `src/utils/shareUrl.ts` - URL encoding/decoding with minified JSON
+- `src/types.ts` - TypeScript interfaces for state and API responses
 
 **Layout Pattern:**
-Each row represents a preview context (e.g., "Chrome Dark - Expanded"). Within each row, display several dummy/placeholder favicons followed by the user's uploaded favicon(s) for realistic comparison.
+Each row represents a browser context (e.g., "Chrome - Dark"). Within each row, tabs display a mix of example favicons (Google, GitHub, YouTube, etc.) and uploaded favicons, replacing from the middle outwards as users upload more.
 
 ### File Handling
-- Support: .ico, .png, .svg (potentially .webp)
+- Support: .ico, .png, .svg, .webp
 - Use FileReader API to convert to data URLs
+- Client-side compression: images resized to max 1024x1024 (maintains aspect ratio)
+- Compressed images stored alongside originals (~80-90% size reduction)
 - Handle multi-resolution .ico files appropriately
 - State management: local React state
 
-### Shareable Links (Future Feature)
-- Generate URLs that encode uploaded favicon data
-- Allow sharing preview context with team/clients
-- No backend storage - data encoded in URL or localStorage
+### Shareable Links (v0.5.0)
+- **Implemented**: Generate shareable URLs that encode favicon previews
+- **Image Hosting**: ImageKit CDN (20GB free storage, 20GB bandwidth/month)
+- **URL Format**: Minified base64-encoded JSON (reduces URL length by ~40%)
+- **Data Shared**: Favicon URLs + titles + Chrome color theme (NOT UI state)
+- **Error Handling**: Validates image URLs, shows error banner for expired/missing images
+- **Download**: Each uploaded favicon can be downloaded as compressed PNG
+- **Configuration**: Requires ImageKit API keys in `.env.local` (see Configuration section)
 
 ### Styling Approach
 - Tab mockups built with Tailwind utilities
@@ -72,9 +115,30 @@ npm run preview
 npm run lint
 ```
 
+## Configuration
+
+### ImageKit Setup (for Shareable Links)
+
+Create a `.env.local` file in the project root with your ImageKit credentials:
+
+```bash
+VITE_IMAGEKIT_PUBLIC_KEY=your_public_key_here
+VITE_IMAGEKIT_PRIVATE_KEY=your_private_key_here
+VITE_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_imagekit_id
+```
+
+**Getting API keys:**
+1. Sign up at https://imagekit.io/ (free tier: 20GB storage + 20GB bandwidth)
+2. Go to Developer Options in dashboard
+3. Copy Public Key, Private Key, and URL Endpoint
+4. Add to `.env.local`
+5. Restart dev server
+
+**Note:** Share functionality gracefully degrades if credentials are not configured.
+
 ## Visual Testing
 
-Use the `webapp-testing` skill to verify visual appearance after making UI changes:
+Use the `webapp-testing` skill to verify visual appearance after making UI changes unless it is so simply that you're certain no visual inspection is needed:
 
 ```bash
 # Example: Take a screenshot to verify changes
@@ -88,14 +152,21 @@ claude skill webapp-testing
 - Focus on visual verification; manual interaction testing is more efficient for UX
 - Use full-page screenshots to capture all preview contexts at once
 
-## Design Decisions
+## Design Decisions For Mock Tabs
 
-**Browser Scope:** Start with "generic modern browser tab" aesthetic. Only add browser-specific variants (Chrome vs Safari vs Firefox) if research shows meaningful visual differences worth previewing.
+**Browser Variants (Finalized):**
+- Chrome: 3 themes (Dark, Light, Color with customizable palette)
+- Safari Tahoe: 2 themes (Dark, Light) with floating rounded tab design
+- Firefox: Deferred (similar enough to Chrome for v1)
+- Edge: Deferred (uses Chromium, visually similar to Chrome)
 
-**Preview Contexts (minimum viable):**
-- Light theme, expanded tab (icon + title)
-- Dark theme, expanded tab
-- Light theme, compressed tab (icon only)
-- Dark theme, compressed tab
+**Tab States Implemented:**
+- Expanded: Shows favicon + title + close button
+- Collapsed: Shows favicon only (toggle available)
+- Active/Inactive: Visual distinction for focused tab
+- Pinned tabs: Deferred to future version
 
-**Simplicity First:** Avoid over-engineering. No server-side generation, no complex state management. The goal is a useful tool, not feature bloat.
+**Example Favicons:**
+Default tabs show popular sites (Google, GitHub, YouTube, Reddit, Stack Overflow) to provide realistic context. Uploaded favicons replace these from middle outwards.
+
+**Simplicity First:** Avoid over-engineering. Tab mockups capture the "feel" of each browser rather than pixel-perfect recreation. All processing is client-side with no complex backend infrastructure.

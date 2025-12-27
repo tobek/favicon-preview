@@ -6,15 +6,18 @@ import {
   SafariTahoeDarkTab,
   SafariTahoeLightTab
 } from './components/tabs/index.ts';
-import type { UploadedFavicon } from './types.ts';
+import type { CompressedFavicon } from './types.ts';
 import { Tooltip } from './components/Tooltip';
+import { compressImage } from './utils/imageCompression';
+import { ShareButton } from './components/ShareButton';
+import { parseShareUrl, validateSharedState } from './utils/shareUrl';
 
-// Example favicons - using public URLs for now
-const EXAMPLE_FAVICONS = [
-  { icon: '/favicon-examples/favicon.ico', title: 'Example Site 1' },
-  { icon: '/favicon-examples/favicon.ico.1', title: 'Example Site 2' },
-  { icon: '/favicon-examples/wikipedia.ico', title: 'Wikipedia' },
-];
+// Example favicons - using public URLs for now (currently unused but kept for future reference)
+// const EXAMPLE_FAVICONS = [
+//   { icon: '/favicon-examples/favicon.ico', title: 'Example Site 1' },
+//   { icon: '/favicon-examples/favicon.ico.1', title: 'Example Site 2' },
+//   { icon: '/favicon-examples/wikipedia.ico', title: 'Wikipedia' },
+// ];
 
 // Dummy favicons for context
 const DUMMY_TABS = [
@@ -74,17 +77,17 @@ function lightenColor(hex: string, amount: number = 0.15): string {
   );
 }
 
-// Determine if we should use light or dark text based on background color
-function shouldUseLightText(hex: string): boolean {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return false;
-  // Calculate relative luminance
-  const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
-  return luminance < 0.5;
-}
+// Determine if we should use light or dark text based on background color (currently unused)
+// function shouldUseLightText(hex: string): boolean {
+//   const rgb = hexToRgb(hex);
+//   if (!rgb) return false;
+//   // Calculate relative luminance
+//   const luminance = (0.299 * rgb.r + 0.587 * rgb.g + 0.114 * rgb.b) / 255;
+//   return luminance < 0.5;
+// }
 
 // Helper function to merge uploaded favicons with dummy tabs using middle-outward strategy
-function mergeFavicons(dummyTabs: typeof DUMMY_TABS, uploadedFavicons: UploadedFavicon[]) {
+function mergeFavicons(dummyTabs: typeof DUMMY_TABS, uploadedFavicons: CompressedFavicon[]) {
   const baseCount = dummyTabs.length; // Start with 6 base tabs
   const uploadCount = uploadedFavicons.length;
 
@@ -134,19 +137,68 @@ function App() {
   const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
   const [chromeColorTheme, setChromeColorTheme] = useState('#3d5f5a');
   const [activeTabIndex, setActiveTabIndex] = useState(1); // 2nd tab is initially active
-  const [uploadedFavicons, setUploadedFavicons] = useState<UploadedFavicon[]>([]);
+  const [uploadedFavicons, setUploadedFavicons] = useState<CompressedFavicon[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [isLoadingShared, setIsLoadingShared] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
 
   // Merge uploaded favicons with dummy tabs
   const allTabs = mergeFavicons(DUMMY_TABS, uploadedFavicons);
 
+  // Load shared state from URL on mount
+  useEffect(() => {
+    const loadSharedState = async () => {
+      const sharedState = parseShareUrl();
+      if (!sharedState) return;
+
+      setIsLoadingShared(true);
+
+      try {
+        // Validate image URLs
+        const validationResults = await validateSharedState(sharedState);
+        const failedUrls = validationResults.filter((r) => !r.isValid);
+
+        // Show error if any images are missing
+        if (failedUrls.length > 0) {
+          const failedCount = failedUrls.length;
+          const totalCount = validationResults.length;
+          setLoadError(
+            `${failedCount} of ${totalCount} favicon${failedCount > 1 ? 's are' : ' is'} no longer available or expired.`
+          );
+        }
+
+        // Load available favicons
+        const availableFavicons = validationResults
+          .filter((r) => r.isValid)
+          .map((r, i) => ({
+            id: `shared-${Date.now()}-${i}`,
+            dataUrl: r.url,
+            uploadedImageUrl: r.url,
+            title: r.title,
+          }));
+
+        setUploadedFavicons(availableFavicons);
+
+        // Set chrome color theme
+        setChromeColorTheme(`#${sharedState.color}`);
+      } catch (error) {
+        console.error('Failed to load shared state:', error);
+        setLoadError('Failed to load shared preview. The link may be invalid or corrupted.');
+      } finally {
+        setIsLoadingShared(false);
+      }
+    };
+
+    loadSharedState();
+  }, []);
+
   // Handle file upload
   const handleFileUpload = async (files: FileList | null) => {
     if (!files) return;
 
-    const newFavicons: UploadedFavicon[] = [];
+    const newFavicons: CompressedFavicon[] = [];
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -160,9 +212,13 @@ function App() {
         reader.readAsDataURL(file);
       });
 
+      // Compress image for storage and future upload
+      const compressedDataUrl = await compressImage(dataUrl);
+
       newFavicons.push({
         id: `${Date.now()}-${i}`,
         dataUrl,
+        compressedDataUrl,
         title: file.name.replace(/\.(png|ico|svg|webp)$/i, ''),
       });
     }
@@ -252,6 +308,19 @@ function App() {
     link.href = dataUrl;
   };
 
+  // Download favicon (compressed version if available)
+  const downloadFavicon = (favicon: CompressedFavicon) => {
+    const dataUrl = favicon.compressedDataUrl || favicon.dataUrl;
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    // Sanitize filename
+    const sanitizedTitle = favicon.title.replace(/[^a-z0-9_.-]/gi, '_');
+    link.download = `${sanitizedTitle}-favicon.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div
       className={`min-h-screen p-8 transition-colors ${
@@ -264,6 +333,57 @@ function App() {
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      {/* Load Error Banner */}
+      {loadError && (
+        <div className="max-w-7xl mx-auto mb-4">
+          <div className={`px-4 py-3 rounded-lg flex items-start justify-between ${
+            isDarkMode
+              ? 'bg-yellow-900/50 border border-yellow-700 text-yellow-200'
+              : 'bg-yellow-100 border border-yellow-300 text-yellow-900'
+          }`}>
+            <div className="flex items-start gap-3">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="flex-shrink-0 mt-0.5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              <div>
+                <p className="font-medium">Shared Preview Warning</p>
+                <p className="text-sm mt-1">{loadError}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setLoadError(null)}
+              className={`flex-shrink-0 transition-colors ${
+                isDarkMode
+                  ? 'text-yellow-200 hover:text-yellow-100'
+                  : 'text-yellow-900 hover:text-yellow-950'
+              }`}
+              aria-label="Dismiss"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Loading Shared State Indicator */}
+      {isLoadingShared && (
+        <div className="max-w-7xl mx-auto mb-4">
+          <div className={`px-4 py-3 rounded-lg flex items-center gap-3 ${
+            isDarkMode
+              ? 'bg-slate-800 border border-slate-700 text-slate-300'
+              : 'bg-white border border-slate-300 text-slate-700'
+          }`}>
+            <div className="animate-spin rounded-full h-5 w-5 border-2 border-slate-400 border-t-transparent"></div>
+            <p>Loading shared preview...</p>
+          </div>
+        </div>
+      )}
+
       {/* Full-page drag overlay */}
       {isDragging && (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
@@ -392,6 +512,17 @@ function App() {
               </p>
             </div>
 
+            {/* Share Button */}
+            {uploadedFavicons.length > 0 && (
+              <div className="pt-2">
+                <ShareButton
+                  uploadedFavicons={uploadedFavicons}
+                  chromeColorTheme={chromeColorTheme}
+                  isDarkMode={isDarkMode}
+                />
+              </div>
+            )}
+
             {/* Uploaded Favicons List */}
             {uploadedFavicons.length > 0 && (
               <div className="space-y-2">
@@ -450,6 +581,21 @@ function App() {
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                               <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                          </button>
+                        </Tooltip>
+                        <Tooltip content="Download favicon">
+                          <button
+                            onClick={() => downloadFavicon(favicon)}
+                            className={`cursor-pointer transition-colors ${
+                              isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                            aria-label="Download favicon"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                              <polyline points="7 10 12 15 17 10"/>
+                              <line x1="12" y1="15" x2="12" y2="3"/>
                             </svg>
                           </button>
                         </Tooltip>
