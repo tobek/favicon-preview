@@ -234,7 +234,7 @@ This document tracks detailed version history, planned features, research findin
 
 ## Planned Features
 
-### v1.1+ (Future)
+### v1.x+ (Future)
 1. Create shortlinks for shared previews using Firebase Storage
 2. Support dragging in .ico files (currently nothing happens)
 3. Cleanup script to remove all uploaded favicons in Firebase that are older than 6 months (ensure that loading previews with missing favicons fails gracefully)

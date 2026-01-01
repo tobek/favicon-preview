@@ -27,7 +27,7 @@
 
 ## Visual Testing
 
-Use the `webapp-testing` skill to verify visual changes unless the change is trivial and you're certain no visual inspection is needed.
+Use the `webapp-testing` skill to verify visual changes unless the change is trivial and you're certain no visual inspection is needed. In order to assess the usefulness of this, please alert the user if this check results in fixes.
 
 **When to use:**
 - After implementing visual/UI changes to verify appearance
@@ -43,19 +43,23 @@ Use the `webapp-testing` skill to verify visual changes unless the change is tri
 **Avoid Over-Engineering:**
 - Only make changes that are directly requested or clearly necessary
 - Don't add features, refactor code, or make "improvements" beyond what was asked
+   - If a refactor would be clearly advised for code quality etc., then please confirm with the user before refactoring
 - Don't add error handling for scenarios that can't happen
+- Don't add backwards compatibility where updating all call sites would suffice
 - Don't create abstractions for one-time operations
 - Three similar lines of code is better than a premature abstraction
 
 **Code Style:**
 - Tab mockups capture browser "feel" rather than pixel-perfect recreation
 - Use Tailwind utilities for styling
-- Avoid creating new files unless absolutely necessary—prefer editing existing ones
 - No emojis unless explicitly requested
 
 **State Management:**
 - Local React state only (no external state management)
 - All file processing happens client-side (FileReader API)
+
+**Git Commits:**
+- Do NOT add "Generated with Claude Code" branding or "Co-Authored-By: Claude..." attribution to commits
 
 ## Documentation Updates
 
