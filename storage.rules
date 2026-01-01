@@ -1,0 +1,16 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /favicons/{fileName} {
+      // Anyone can read (for shared links)
+      allow read: if true;
+
+      // Anyone can upload, but with restrictions
+      allow create: if request.resource.size < 1024 * 1024  // 1MB max
+                    && request.resource.contentType.matches('image/.*');
+
+      // No updates or deletes from clients
+      allow update, delete: if false;
+    }
+  }
+}

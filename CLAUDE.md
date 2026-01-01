@@ -10,7 +10,7 @@ A static web app for previewing favicons in realistic browser tab contexts. User
 
 **See SCOPE.md for detailed requirements, decisions, and research findings.**
 
-### Current Features (v0.5.0)
+### Current Features (v0.5.1)
 
 **Core Functionality:**
 - Drag-drop and file picker favicon upload (.ico, .png, .svg, .webp)
@@ -27,8 +27,8 @@ A static web app for previewing favicons in realistic browser tab contexts. User
 
 **Sharing & Export:**
 - Share button generates URL with uploaded favicons
-- Client-side image compression (max 1024x1024)
-- ImageKit CDN hosting for shared images
+- Client-side image compression (max 256x256 - sufficient for favicons)
+- Firebase Storage hosting for shared images (secure, upload-only)
 - Download button for each favicon (compressed PNG)
 - Load shared previews from URL
 - Error handling for expired/missing images
@@ -66,9 +66,10 @@ Client-side only, no backend. File processing happens entirely in the browser us
   - `SafariTahoeLightTab.tsx` - Safari light theme floating tabs
 
 **Utility Modules:**
-- `src/utils/imageCompression.ts` - Client-side image compression (Canvas API)
-- `src/utils/imagekitUpload.ts` - ImageKit CDN upload with retry logic
+- `src/utils/imageCompression.ts` - Client-side image compression (Canvas API, max 256x256)
+- `src/utils/firebaseUpload.ts` - Firebase Storage upload with retry logic
 - `src/utils/shareUrl.ts` - URL encoding/decoding with minified JSON
+- `src/firebase.ts` - Firebase app initialization
 - `src/types.ts` - TypeScript interfaces for state and API responses
 
 **Layout Pattern:**
@@ -77,19 +78,20 @@ Each row represents a browser context (e.g., "Chrome - Dark"). Within each row, 
 ### File Handling
 - Support: .ico, .png, .svg, .webp
 - Use FileReader API to convert to data URLs
-- Client-side compression: images resized to max 1024x1024 (maintains aspect ratio)
-- Compressed images stored alongside originals (~80-90% size reduction)
+- Client-side compression: images resized to max 256x256 (sufficient for favicons)
+- Compressed images stored alongside originals (typically under 50KB)
 - Handle multi-resolution .ico files appropriately
 - State management: local React state
 
-### Shareable Links (v0.5.0)
+### Shareable Links (v0.5.1)
 - **Implemented**: Generate shareable URLs that encode favicon previews
-- **Image Hosting**: ImageKit CDN (20GB free storage, 20GB bandwidth/month)
+- **Image Hosting**: Firebase Storage (5GB free storage, 1GB/day downloads)
 - **URL Format**: Minified base64-encoded JSON (reduces URL length by ~40%)
 - **Data Shared**: Favicon URLs + titles + Chrome color theme (NOT UI state)
 - **Error Handling**: Validates image URLs, shows error banner for expired/missing images
 - **Download**: Each uploaded favicon can be downloaded as compressed PNG
-- **Configuration**: Requires ImageKit API keys in `.env.local` (see Configuration section)
+- **Security**: Upload-only rules (clients cannot delete), 1MB max file size, images only
+- **Configuration**: Requires Firebase config in `.env.local` (see Configuration section)
 
 ### Styling Approach
 - Tab mockups built with Tailwind utilities
@@ -117,22 +119,33 @@ npm run lint
 
 ## Configuration
 
-### ImageKit Setup (for Shareable Links)
+### Firebase Setup (for Shareable Links & Hosting)
 
-Create a `.env.local` file in the project root with your ImageKit credentials:
+Create a `.env.local` file in the project root with your Firebase config:
 
 ```bash
-VITE_IMAGEKIT_PUBLIC_KEY=your_public_key_here
-VITE_IMAGEKIT_PRIVATE_KEY=your_private_key_here
-VITE_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_imagekit_id
+VITE_FIREBASE_API_KEY=your_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 ```
 
-**Getting API keys:**
-1. Sign up at https://imagekit.io/ (free tier: 20GB storage + 20GB bandwidth)
-2. Go to Developer Options in dashboard
-3. Copy Public Key, Private Key, and URL Endpoint
-4. Add to `.env.local`
-5. Restart dev server
+**Setup steps:**
+1. Create project at https://console.firebase.google.com/
+2. Enable Storage: Build → Storage → Get Started
+3. Add web app: Project Settings → Your apps → Add app (Web)
+4. Copy firebaseConfig values to `.env.local`
+5. Deploy security rules: `firebase deploy --only storage`
+6. Restart dev server
+
+**Deployment:**
+```bash
+npm run build
+firebase deploy
+```
 
 **Note:** Share functionality gracefully degrades if credentials are not configured.
 

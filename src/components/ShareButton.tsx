@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import type { CompressedFavicon } from '../types';
 import {
-  uploadMultipleToImageKit,
-  hasImageKitCredentials,
-  getImageKitCredentials,
-} from '../utils/imagekitUpload';
+  uploadMultipleToFirebase,
+  hasFirebaseConfig,
+} from '../utils/firebaseUpload';
 import { generateShareUrl, getUrlLengthWarning } from '../utils/shareUrl';
 
 interface ShareButtonProps {
@@ -22,7 +21,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [partialFailures, setPartialFailures] = useState<Array<{ id: string; error: string }>>([]);
 
-  const hasCredentials = hasImageKitCredentials();
+  const hasCredentials = hasFirebaseConfig();
   const canShare = uploadedFavicons.length > 0 && hasCredentials;
 
   const handleShare = async () => {
@@ -32,9 +31,8 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
     setErrorMessage('');
     setPartialFailures([]);
 
-    const credentials = getImageKitCredentials();
-    if (!credentials) {
-      setErrorMessage('ImageKit credentials not configured. Please add VITE_IMAGEKIT_PUBLIC_KEY and VITE_IMAGEKIT_PRIVATE_KEY to your .env.local file.');
+    if (!hasFirebaseConfig()) {
+      setErrorMessage('Firebase not configured. Please add Firebase credentials to your .env.local file.');
       setShareState('error');
       return;
     }
@@ -50,21 +48,19 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
         console.warn(lengthWarning);
       }
 
-      // Upload images to ImageKit
+      // Upload images to Firebase Storage
       const imagesToUpload = uploadedFavicons.map((favicon) => ({
         id: favicon.id,
-        dataUrl: favicon.compressedDataUrl || favicon.dataUrl,
-        title: favicon.title,
+        compressedDataUrl: favicon.compressedDataUrl || favicon.dataUrl,
+        fileName: `${favicon.title}.png`,
       }));
 
-      const uploadResults = await uploadMultipleToImageKit(
-        imagesToUpload,
-        credentials.publicKey,
-        credentials.privateKey,
-        (completed, total) => {
-          setUploadProgress({ completed, total });
-        }
-      );
+      setUploadProgress({ completed: 0, total: imagesToUpload.length });
+
+      const uploadResults = await uploadMultipleToFirebase(imagesToUpload);
+
+      // Update progress as complete
+      setUploadProgress({ completed: imagesToUpload.length, total: imagesToUpload.length });
 
       // Check for failures
       const failures = uploadResults.filter((result) => result.error !== null);
@@ -131,9 +127,9 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
   if (!hasCredentials) {
     return (
       <div className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
-        <p>ImageKit not configured</p>
+        <p>Firebase not configured</p>
         <p className="text-xs mt-1">
-          Add VITE_IMAGEKIT_PUBLIC_KEY and VITE_IMAGEKIT_PRIVATE_KEY to .env.local
+          Add Firebase credentials to .env.local (see .env.local.example)
         </p>
       </div>
     );
@@ -223,7 +219,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
               setShareUrl('');
               setPartialFailures([]);
             }}
-            className={`text-sm ${isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-600 hover:text-slate-700'}`}
+            className={`text-sm underline ${isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-600 hover:text-slate-700'}`}
           >
             Create New Link
           </button>
@@ -252,7 +248,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
             </button>
             <button
               onClick={() => setShareState('idle')}
-              className={`text-sm ${isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-600 hover:text-slate-700'}`}
+              className={`text-sm underline ${isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-600 hover:text-slate-700'}`}
             >
               Cancel
             </button>

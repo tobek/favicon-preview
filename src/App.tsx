@@ -529,7 +529,7 @@ function App() {
                 <h3 className={`text-sm font-semibold transition-colors ${
                   isDarkMode ? 'text-slate-300' : 'text-slate-700'
                 }`}>
-                  Uploaded Favicons ({uploadedFavicons.length})
+                  Loaded Favicons ({uploadedFavicons.length})
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {uploadedFavicons.map((favicon) => {

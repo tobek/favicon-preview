@@ -13,15 +13,15 @@ export interface CompressionOptions {
 /**
  * Compresses an image from a data URL
  * @param dataUrl - The image data URL to compress
- * @param maxWidth - Maximum width (default: 1024)
- * @param maxHeight - Maximum height (default: 1024)
+ * @param maxWidth - Maximum width (default: 256 - sufficient for favicons)
+ * @param maxHeight - Maximum height (default: 256 - sufficient for favicons)
  * @param quality - Compression quality 0-1 (default: 0.9)
  * @returns Promise<string> - Compressed image as data URL
  */
 export async function compressImage(
   dataUrl: string,
-  maxWidth = 1024,
-  maxHeight = 1024,
+  maxWidth = 256,
+  maxHeight = 256,
   quality = 0.9
 ): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -127,7 +127,7 @@ export async function compressMultipleImages(
   options: CompressionOptions = {},
   onProgress?: (completed: number, total: number) => void
 ): Promise<string[]> {
-  const { maxWidth = 1024, maxHeight = 1024, quality = 0.9 } = options;
+  const { maxWidth = 256, maxHeight = 256, quality = 0.9 } = options;
   const results: string[] = [];
 
   for (let i = 0; i < dataUrls.length; i++) {

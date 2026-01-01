@@ -2,32 +2,29 @@
 
 ## Overview
 
-Implement shareable links feature that encodes favicon previews into URLs. Users can share their favicon comparisons with others. The feature includes:
-- Client-side image compression (max 1024x1024)
+Shareable links feature that encodes favicon previews into URLs. Users can share their favicon comparisons with others. The feature includes:
+- Client-side image compression (max 256x256 - sufficient for favicons)
 - Upload to Firebase Storage (secure, no credentials exposed)
 - URL generation with minified base64-encoded JSON
 - Download button for each favicon (compressed version)
 - Error handling for expired/missing images
+- Firebase Hosting for deployment
 
 ## Current State
 
-### ✅ Implemented (ImageKit - needs replacement)
-- Client-side image compression (`src/utils/imageCompression.ts`)
+### ✅ Implemented (Firebase Storage)
+- Client-side image compression (`src/utils/imageCompression.ts`) - max 256x256
 - Share URL generation/parsing (`src/utils/shareUrl.ts`)
 - ShareButton component (`src/components/ShareButton.tsx`)
+- Firebase upload utility (`src/utils/firebaseUpload.ts`)
+- Firebase initialization (`src/firebase.ts`)
 - Download button for favicons
 - Load from shared URL on page mount
 - Error handling UI
+- Firebase Hosting configured (`firebase.json`)
 
-### ❌ Security Issue with ImageKit
-The current ImageKit implementation requires exposing the **private key** in client-side code. This is a security risk:
-- Private key grants **delete access** (not just upload)
-- Anyone can extract the key and delete all uploaded images
-- ImageKit's restricted keys don't have "upload-only" permission
-- ImageKit requires a backend auth endpoint for secure client-side uploads
-
-### 🔄 Migration: ImageKit → Firebase Storage
-Firebase Storage is the better choice because:
+### ✅ Migration Complete: ImageKit → Firebase Storage
+Firebase Storage was chosen because:
 - **No credentials exposed** - uses public Firebase config (designed to be public)
 - **Security rules enforce upload-only** - clients cannot delete files
 - **File size limits in security rules** - prevent abuse
@@ -74,7 +71,7 @@ service firebase.storage {
       allow read: if true;
 
       // Anyone can upload, but with restrictions
-      allow create: if request.resource.size < 500 * 1024  // 500KB max
+      allow create: if request.resource.size < 1024 * 1024  // 1MB max
                     && request.resource.contentType.matches('image/.*');
 
       // No updates or deletes from clients
@@ -116,10 +113,10 @@ https://example.com?share=eyJmIjpbeyJ1IjoiaHR0cHM6Ly...
 
 ### Client-Side Compression
 
-- Use Canvas API to resize to max 1024x1024
+- Use Canvas API to resize to max 256x256 (sufficient for favicons)
 - Convert to PNG (preserves transparency) or JPEG (for photos)
 - Compress on upload, store compressed version
-- ~80-90% reduction in file size expected
+- Significant reduction in file size (typically under 50KB)
 
 ## Migration Plan
 
@@ -216,7 +213,7 @@ export function hasFirebaseConfig(): boolean {
 
 ### 4. Security Rules
 
-Deploy these rules in Firebase Console → Storage → Rules:
+Deploy these rules via CLI: `firebase deploy --only storage`
 
 ```javascript
 rules_version = '2';
@@ -226,8 +223,8 @@ service firebase.storage {
       // Anyone can read
       allow read: if true;
 
-      // Upload restrictions: images only, max 500KB
-      allow create: if request.resource.size < 500 * 1024
+      // Upload restrictions: images only, max 1MB
+      allow create: if request.resource.size < 1024 * 1024
                     && request.resource.contentType.matches('image/.*');
 
       // No client-side updates or deletes
@@ -311,17 +308,17 @@ export interface FirebaseUploadResult {
 
 ## Implementation Order
 
-1. ✅ Image compression (already done)
-2. ✅ URL generation/parsing (already done)
-3. ✅ ShareButton UI (already done, needs Firebase integration)
-4. ⏸️ **Create Firebase project and configure**
-5. ⏸️ **Create `src/firebase.ts` initialization**
-6. ⏸️ **Create `src/utils/firebaseUpload.ts`**
-7. ⏸️ **Update ShareButton to use Firebase**
-8. ⏸️ **Delete `src/utils/imagekitUpload.ts`**
-9. ⏸️ **Deploy security rules**
-10. ⏸️ **Test end-to-end**
-11. ⏸️ **Create cleanup script**
+1. ✅ Image compression (max 256x256 for favicons)
+2. ✅ URL generation/parsing
+3. ✅ ShareButton UI
+4. ✅ **Create Firebase project and configure**
+5. ✅ **Create `src/firebase.ts` initialization**
+6. ✅ **Create `src/utils/firebaseUpload.ts`**
+7. ✅ **Update ShareButton to use Firebase**
+8. ✅ **Delete `src/utils/imagekitUpload.ts`**
+9. ✅ **Deploy security rules** (1MB max, images only)
+10. ✅ **Test end-to-end**
+11. ⏸️ **Create cleanup script** (optional, for 6-month expiration)
 
 ---
 

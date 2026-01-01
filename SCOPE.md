@@ -289,23 +289,31 @@ A static web app that previews favicons in realistic browser tab contexts, allow
 
 **See [SHARING-PLAN.md](./SHARING-PLAN.md) for detailed migration plan.**
 
-### Planned (v0.5.1) - Firebase Migration
+### Completed (v0.5.1) - Firebase Migration
 
-#### Replace ImageKit with Firebase Storage
-1. **Firebase Storage Integration**
-   - [ ] Create Firebase project and configure
-   - [ ] Firebase initialization (`src/firebase.ts`)
-   - [ ] Upload utility (`src/utils/firebaseUpload.ts`)
-   - [ ] Update ShareButton to use Firebase
-   - [ ] Delete ImageKit utility
+#### Replace ImageKit with Firebase Storage ✓
+1. **Firebase Storage Integration** ✓
+   - [x] Create Firebase project and configure
+   - [x] Firebase initialization (`src/firebase.ts`)
+   - [x] Upload utility (`src/utils/firebaseUpload.ts`)
+   - [x] Update ShareButton to use Firebase
+   - [x] Delete ImageKit utility
 
-2. **Security Rules**
-   - [ ] Deploy upload-only security rules
-   - [ ] File size limit (500KB max)
-   - [ ] File type restriction (images only)
-   - [ ] No client delete access
+2. **Security Rules** ✓
+   - [x] Deploy upload-only security rules
+   - [x] File size limit (1MB max)
+   - [x] File type restriction (images only)
+   - [x] No client delete access
 
-3. **Cleanup Strategy**
+3. **Compression Optimization** ✓
+   - [x] Reduced max dimensions from 1024x1024 to 256x256 (sufficient for favicons)
+   - [x] Significantly smaller file sizes for reliable uploads
+
+4. **Firebase Hosting** ✓
+   - [x] Configured `firebase.json` for hosting
+   - [x] Deploy with `npm run build && firebase deploy`
+
+5. **Cleanup Strategy**
    - [ ] Create cleanup script for 6-month expiration
    - [ ] Document monthly cron job process
 
@@ -316,10 +324,20 @@ A static web app that previews favicons in realistic browser tab contexts, allow
 - Free tier: 5GB storage, 1GB/day downloads
 - Pricing: ~$0/mo for 100-1000 MAU
 
+**All v0.5.1 features completed and tested successfully!**
+
+### Planned (v0.6.0)
+
+- Update icon rounding behavior. on the chrome tabs, no rounding. on safari tabs, 2px border radius
+- When you hit the "preview in browser tab" button on a favicon, it should change the eye icon on that favicon to an active state (and set any others to not active). update tooltip text accordingly
+- When loading a shared link, it should set one (first?) of the shared favicons in the browser tab and set the active state
+- When adding an icon, there's a delay while image compression happens. show the favicon box (the one with the action icons) with a loading symbol while compression happens
+
 ### Future Features (v1.0)
+- Deploy to firebase app and set up scripts for this
+- Create shortlinks for shared previews using firebase storage
+- Support dragging in .ico files (currently nothing happens)
 - Improve visual fidelity based on user feedback
     - Safari tabs fill available space I think?
     - Check Safari too-long title truncation style
-- Export as image/screenshot
 - More tab contexts if needed
-- There is still a tiny bit of jank with the tab title overflow fade out gradient on hover/activate of tab, the gradient is briefly slightly visible - is there another way to implement this where the title actually fades out instead of using a gradient mask of the same color as what's behind it?
