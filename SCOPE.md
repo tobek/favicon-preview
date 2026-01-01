@@ -195,13 +195,27 @@ This document tracks detailed version history, planned features, research findin
 - Free tier: 5GB storage, 1GB/day downloads
 - Pricing: ~$0/mo for 100-1000 MAU
 
-## Planned Features
+### v0.6.0 - UI/UX Enhancements
 
-### v0.6.0
-- Update icon rounding behavior: no rounding on Chrome tabs, 2px border radius on Safari tabs
-- Active state for "preview in browser tab" button (eye icon shows which favicon is currently in browser tab)
-- When loading a shared link, set first shared favicon in browser tab with active state
-- Show loading symbol in favicon box while image compression happens
+1. **Icon Rounding Updates** ✓
+   - [x] Chrome tabs: no border radius on favicons (unchanged)
+   - [x] Safari tabs: 2px border radius on favicons
+
+2. **Active Preview State** ✓
+   - [x] Eye icon shows active state (blue color) when favicon is in browser tab
+   - [x] Visual indicator for which favicon is currently previewed
+   - [x] State tracked across uploads and interactions
+
+3. **Shared Link Improvements** ✓
+   - [x] First shared favicon automatically set in browser tab on load
+   - [x] Preview button shows active state for loaded favicon
+
+4. **Loading Indicators** ✓
+   - [x] Loading spinner displayed during image compression
+   - [x] Shows filename while processing
+   - [x] Smooth transition from loading to loaded state
+
+## Planned Features
 
 ### v1.0+ (Future)
 - Deploy to Firebase Hosting

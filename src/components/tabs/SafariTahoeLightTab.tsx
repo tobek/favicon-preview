@@ -17,7 +17,7 @@ export function SafariTahoeLightTab({ favicon, title, isActive = false, isCollap
       <img
         src={favicon}
         alt={title}
-        className={`w-4 h-4 flex-shrink-0 ${!isCollapsed && 'mr-2'}`}
+        className={`w-4 h-4 flex-shrink-0 rounded-[2px] ${!isCollapsed && 'mr-2'}`}
       />
       {!isCollapsed && (
         <>

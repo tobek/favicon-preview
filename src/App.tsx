@@ -141,6 +141,8 @@ function App() {
   const [isDragging, setIsDragging] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoadingShared, setIsLoadingShared] = useState(false);
+  const [currentBrowserTabFaviconId, setCurrentBrowserTabFaviconId] = useState<string | null>(null);
+  const [loadingFavicons, setLoadingFavicons] = useState<Array<{ id: string; fileName: string }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
 
@@ -183,6 +185,12 @@ function App() {
 
         // Set chrome color theme
         setChromeColorTheme(`#${sharedState.color}`);
+
+        // Preview first favicon in browser tab
+        if (availableFavicons.length > 0) {
+          const firstFavicon = availableFavicons[0];
+          previewFaviconInTab(firstFavicon.dataUrl, firstFavicon.id);
+        }
       } catch (error) {
         console.error('Failed to load shared state:', error);
         setLoadError('Failed to load shared preview. The link may be invalid or corrupted.');
@@ -198,6 +206,16 @@ function App() {
   const handleFileUpload = async (files: FileList | null) => {
     if (!files) return;
 
+    // Add all files to loading state immediately
+    const loadingItems = Array.from(files)
+      .filter(file => file.type.match(/^image\/(png|x-icon|svg\+xml|webp)$/))
+      .map((file, i) => ({
+        id: `loading-${Date.now()}-${i}`,
+        fileName: file.name.replace(/\.(png|ico|svg|webp)$/i, ''),
+      }));
+
+    setLoadingFavicons(prev => [...prev, ...loadingItems]);
+
     const newFavicons: CompressedFavicon[] = [];
 
     for (let i = 0; i < files.length; i++) {
@@ -205,6 +223,8 @@ function App() {
       if (!file.type.match(/^image\/(png|x-icon|svg\+xml|webp)$/)) {
         continue; // Skip non-favicon files
       }
+
+      const loadingId = loadingItems[newFavicons.length]?.id;
 
       const reader = new FileReader();
       const dataUrl = await new Promise<string>((resolve) => {
@@ -221,6 +241,11 @@ function App() {
         compressedDataUrl,
         title: file.name.replace(/\.(png|ico|svg|webp)$/i, ''),
       });
+
+      // Remove from loading state after compression
+      if (loadingId) {
+        setLoadingFavicons(prev => prev.filter(item => item.id !== loadingId));
+      }
     }
 
     if (newFavicons.length > 0) {
@@ -248,7 +273,7 @@ function App() {
 
       // Automatically preview the last uploaded favicon in browser tab
       const lastFavicon = newFavicons[newFavicons.length - 1];
-      previewFaviconInTab(lastFavicon.dataUrl);
+      previewFaviconInTab(lastFavicon.dataUrl, lastFavicon.id);
     }
   };
 
@@ -297,7 +322,7 @@ function App() {
   };
 
   // Preview favicon in actual browser tab
-  const previewFaviconInTab = (dataUrl: string) => {
+  const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
     // Find existing favicon link element or create new one
     let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
     if (!link) {
@@ -306,6 +331,11 @@ function App() {
       document.head.appendChild(link);
     }
     link.href = dataUrl;
+
+    // Update current browser tab favicon ID
+    if (faviconId) {
+      setCurrentBrowserTabFaviconId(faviconId);
+    }
   };
 
   // Download favicon (compressed version if available)
@@ -524,14 +554,33 @@ function App() {
             )}
 
             {/* Uploaded Favicons List */}
-            {uploadedFavicons.length > 0 && (
+            {(uploadedFavicons.length > 0 || loadingFavicons.length > 0) && (
               <div className="space-y-2">
                 <h3 className={`text-sm font-semibold transition-colors ${
                   isDarkMode ? 'text-slate-300' : 'text-slate-700'
                 }`}>
-                  Loaded Favicons ({uploadedFavicons.length})
+                  Loaded Favicons ({uploadedFavicons.length}{loadingFavicons.length > 0 ? ` + ${loadingFavicons.length} loading` : ''})
                 </h3>
                 <div className="flex flex-wrap gap-2">
+                  {/* Loading favicons */}
+                  {loadingFavicons.map((loading) => (
+                    <div
+                      key={loading.id}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                        isDarkMode
+                          ? 'bg-slate-700'
+                          : 'bg-white border border-slate-200'
+                      }`}
+                    >
+                      <div className="w-4 h-4 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-3 w-3 border-2 border-slate-400 border-t-transparent"></div>
+                      </div>
+                      <span className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                        {loading.fileName}
+                      </span>
+                    </div>
+                  ))}
+                  {/* Uploaded favicons */}
                   {uploadedFavicons.map((favicon) => {
                     const inputId = `title-input-${favicon.id}`;
                     return (
@@ -572,9 +621,11 @@ function App() {
                         </div>
                         <Tooltip content="Preview in browser tab">
                           <button
-                            onClick={() => previewFaviconInTab(favicon.dataUrl)}
+                            onClick={() => previewFaviconInTab(favicon.dataUrl, favicon.id)}
                             className={`cursor-pointer transition-colors ${
-                              isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'
+                              currentBrowserTabFaviconId === favicon.id
+                                ? isDarkMode ? 'text-blue-400' : 'text-blue-600'
+                                : isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-500 hover:text-slate-700'
                             }`}
                             aria-label="Preview in browser tab"
                           >

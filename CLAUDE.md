@@ -56,3 +56,22 @@ Use the `webapp-testing` skill to verify visual changes unless the change is tri
 **State Management:**
 - Local React state only (no external state management)
 - All file processing happens client-side (FileReader API)
+
+## Documentation Updates
+
+**After implementing features, ALWAYS update documentation:**
+
+1. **SCOPE.md** - Version history and feature tracking
+   - Mark completed features as ✓ in the appropriate version section
+   - Move completed version from "Planned Features" to version history
+   - Add detailed implementation notes for significant features
+
+2. **README.md** - High-level project overview
+   - Only update for major architectural changes or new core features
+   - Keep the features list concise and high-level
+   - Update if new dependencies or setup steps are added
+
+3. **CLAUDE.md** - Agent instructions (this file)
+   - Update if new development patterns or conventions are established
+   - Add new utility modules or component organization changes
+   - Document new testing or development workflows

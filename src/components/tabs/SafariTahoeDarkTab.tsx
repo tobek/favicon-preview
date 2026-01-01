@@ -17,7 +17,7 @@ export function SafariTahoeDarkTab({ favicon, title, isActive = false, isCollaps
       <img
         src={favicon}
         alt={title}
-        className={`w-4 h-4 flex-shrink-0 ${!isCollapsed && 'mr-2'}`}
+        className={`w-4 h-4 flex-shrink-0 rounded-[2px] ${!isCollapsed && 'mr-2'}`}
       />
       {!isCollapsed && (
         <>

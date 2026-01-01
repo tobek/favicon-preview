@@ -1,6 +1,6 @@
 # Favicon Preview
 
-A static web app for previewing favicons in realistic browser tab contexts. Upload multiple favicons and see them displayed in mockups of browser tabs across different themes and states to compare how they look "in the wild". Can also share these previews.
+A static web app for previewing favicons in realistic browser tab contexts. Upload multiple favicons and see them displayed in mockups of browser tabs across different themes and states to compare how they look in the wild, and then share these previews.
 
 ## Features
 
