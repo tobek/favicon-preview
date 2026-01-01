@@ -22,7 +22,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
   const [partialFailures, setPartialFailures] = useState<Array<{ id: string; error: string }>>([]);
   const [linkCopied, setLinkCopied] = useState(false);
   const [sharedFaviconIds, setSharedFaviconIds] = useState<string[]>([]);
-  const linkCopiedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const linkCopiedTimeoutRef = useRef<number | null>(null);
 
   const hasCredentials = hasFirebaseConfig();
   const canShare = uploadedFavicons.length > 0 && hasCredentials;
