@@ -542,17 +542,6 @@ function App() {
               </p>
             </div>
 
-            {/* Share Button */}
-            {uploadedFavicons.length > 0 && (
-              <div className="pt-2">
-                <ShareButton
-                  uploadedFavicons={uploadedFavicons}
-                  chromeColorTheme={chromeColorTheme}
-                  isDarkMode={isDarkMode}
-                />
-              </div>
-            )}
-
             {/* Uploaded Favicons List */}
             {(uploadedFavicons.length > 0 || loadingFavicons.length > 0) && (
               <div className="space-y-2">
@@ -673,6 +662,27 @@ function App() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Share Button - Outside upload area */}
+        <div className="flex justify-center">
+          {uploadedFavicons.length === 0 ? (
+            <Tooltip content="Upload favicons to share them">
+              <div>
+                <ShareButton
+                  uploadedFavicons={uploadedFavicons}
+                  chromeColorTheme={chromeColorTheme}
+                  isDarkMode={isDarkMode}
+                />
+              </div>
+            </Tooltip>
+          ) : (
+            <ShareButton
+              uploadedFavicons={uploadedFavicons}
+              chromeColorTheme={chromeColorTheme}
+              isDarkMode={isDarkMode}
+            />
+          )}
         </div>
 
         {/* Preview Rows - Single Scrollable Container */}

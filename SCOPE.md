@@ -218,14 +218,13 @@ This document tracks detailed version history, planned features, research findin
 ## Planned Features
 
 ### v1.0+ (Future)
-- Deploy to Firebase Hosting
-- Create shortlinks for shared previews using Firebase Storage
-- Support dragging in .ico files (currently nothing happens)
-- Improve visual fidelity based on user feedback
+1. Set up Firebase Hosting deployment - should deploy on merge to main and also support manual deployment
+2. Create shortlinks for shared previews using Firebase Storage
+3. Support dragging in .ico files (currently nothing happens)
+4. Cleanup script to remove all uploaded favicons in Firebase that are older than 6 months (ensure that loading previews with missing favicons fails gracefully)
+5. Improve visual fidelity based on research
   - Safari tabs fill available space?
   - Check Safari too-long title truncation style
-- More tab contexts if needed
-- Cleanup script for 6-month expiration (manual cron job)
 
 ## Research Findings
 

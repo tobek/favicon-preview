@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { CompressedFavicon } from '../types';
 import {
   uploadMultipleToFirebase,
@@ -20,9 +20,26 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
   const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0 });
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [partialFailures, setPartialFailures] = useState<Array<{ id: string; error: string }>>([]);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [sharedFaviconIds, setSharedFaviconIds] = useState<string[]>([]);
+  const linkCopiedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const hasCredentials = hasFirebaseConfig();
   const canShare = uploadedFavicons.length > 0 && hasCredentials;
+
+  // Check if favicons have changed since last share
+  const faviconsChanged = shareState === 'success' &&
+    (uploadedFavicons.length !== sharedFaviconIds.length ||
+     !uploadedFavicons.every(f => sharedFaviconIds.includes(f.id)));
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (linkCopiedTimeoutRef.current) {
+        clearTimeout(linkCopiedTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleShare = async () => {
     if (!canShare) return;
@@ -93,6 +110,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
 
       const url = generateShareUrl(successfulFavicons, chromeColorTheme);
       setShareUrl(url);
+      setSharedFaviconIds(uploadedFavicons.map(f => f.id));
       setShareState('success');
     } catch (error) {
       console.error('Share failed:', error);
@@ -104,8 +122,17 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
-      // Could add a toast notification here
-      console.log('Link copied to clipboard');
+      setLinkCopied(true);
+
+      // Clear existing timeout if any
+      if (linkCopiedTimeoutRef.current) {
+        clearTimeout(linkCopiedTimeoutRef.current);
+      }
+
+      // Reset after 2 seconds
+      linkCopiedTimeoutRef.current = setTimeout(() => {
+        setLinkCopied(false);
+      }, 2000);
     } catch (error) {
       console.error('Failed to copy link:', error);
       // Fallback: select the text
@@ -170,7 +197,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
 
       {/* Success State */}
       {shareState === 'success' && (
-        <div className="space-y-2">
+        <div className="space-y-2 w-full max-w-4xl">
           <div className={`text-sm font-medium ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
             Share link created!
             {partialFailures.length > 0 && (
@@ -187,7 +214,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
               type="text"
               value={shareUrl}
               readOnly
-              className={`flex-1 px-3 py-2 rounded-lg text-sm font-mono ${
+              className={`flex-1 min-w-[400px] px-3 py-2 rounded-lg text-sm font-mono ${
                 isDarkMode
                   ? 'bg-slate-800 text-slate-200 border-slate-700'
                   : 'bg-white text-slate-900 border-slate-300'
@@ -195,13 +222,26 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
             />
             <button
               onClick={handleCopyLink}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                isDarkMode
+              className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                linkCopied
+                  ? isDarkMode
+                    ? 'bg-green-700 text-white'
+                    : 'bg-green-600 text-white'
+                  : isDarkMode
                   ? 'bg-slate-700 hover:bg-slate-600 text-slate-100'
                   : 'bg-slate-200 hover:bg-slate-300 text-slate-900'
               }`}
             >
-              Copy Link
+              {linkCopied ? (
+                <span className="flex items-center gap-1.5">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  Copied!
+                </span>
+              ) : (
+                'Copy Link'
+              )}
             </button>
           </div>
 
@@ -212,17 +252,37 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
             </div>
           )}
 
-          {/* Reset Button */}
-          <button
-            onClick={() => {
-              setShareState('idle');
-              setShareUrl('');
-              setPartialFailures([]);
-            }}
-            className={`text-sm underline ${isDarkMode ? 'text-slate-400 hover:text-slate-300' : 'text-slate-600 hover:text-slate-700'}`}
-          >
-            Create New Link
-          </button>
+          {/* Create New Link - Only show if favicons changed */}
+          {faviconsChanged && (
+            <div className={`flex items-start gap-2 p-3 rounded-lg ${
+              isDarkMode ? 'bg-blue-900/30 border border-blue-800' : 'bg-blue-50 border border-blue-200'
+            }`}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`flex-shrink-0 mt-0.5 ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              <div className="flex-1">
+                <p className={`text-sm font-medium ${isDarkMode ? 'text-blue-300' : 'text-blue-800'}`}>
+                  Favicons updated
+                </p>
+                <p className={`text-xs mt-1 ${isDarkMode ? 'text-blue-400/80' : 'text-blue-700'}`}>
+                  You've added or removed favicons. Create a new link to share the updated preview.
+                </p>
+                <button
+                  onClick={() => {
+                    setShareState('idle');
+                    setShareUrl('');
+                    setPartialFailures([]);
+                    setLinkCopied(false);
+                  }}
+                  className={`mt-2 text-sm font-medium underline ${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-700 hover:text-blue-800'}`}
+                >
+                  Create New Link
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
