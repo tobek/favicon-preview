@@ -215,14 +215,30 @@ This document tracks detailed version history, planned features, research findin
    - [x] Shows filename while processing
    - [x] Smooth transition from loading to loaded state
 
+### v1.0 - CI/CD Pipeline
+
+1. **GitHub Actions Workflows** ✓
+   - [x] PR checks workflow (lint + build + Firebase preview deploy)
+   - [x] Production deploy workflow (auto-deploy on merge to main)
+   - [x] Firebase preview channels for PR testing
+   - [x] Automated quality checks before deployment
+
+**Setup Required:**
+- GitHub repository secret:
+  - `FIREBASE_SERVICE_ACCOUNT`: Firebase service account JSON
+  - (Project ID automatically read from `.firebaserc`)
+
+**Workflow Triggers:**
+- PRs to main: Lint, build, and deploy to preview channel
+- Push to main: Lint, build, and deploy to production
+
 ## Planned Features
 
-### v1.0+ (Future)
-1. Set up Firebase Hosting deployment - should deploy on merge to main and also support manual deployment
-2. Create shortlinks for shared previews using Firebase Storage
-3. Support dragging in .ico files (currently nothing happens)
-4. Cleanup script to remove all uploaded favicons in Firebase that are older than 6 months (ensure that loading previews with missing favicons fails gracefully)
-5. Improve visual fidelity based on research
+### v1.1+ (Future)
+1. Create shortlinks for shared previews using Firebase Storage
+2. Support dragging in .ico files (currently nothing happens)
+3. Cleanup script to remove all uploaded favicons in Firebase that are older than 6 months (ensure that loading previews with missing favicons fails gracefully)
+4. Improve visual fidelity based on research
   - Safari tabs fill available space?
   - Check Safari too-long title truncation style
 

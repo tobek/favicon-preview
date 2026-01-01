@@ -65,7 +65,7 @@ export async function compressImage(
         // Determine output format based on image type
         // Use PNG for images with transparency, JPEG for others
         let outputFormat = 'image/png';
-        let outputQuality = quality;
+        const outputQuality = quality;
 
         // Check if image has transparency
         const imageData = ctx.getImageData(0, 0, width, height);
