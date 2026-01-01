@@ -1,73 +1,160 @@
-# React + TypeScript + Vite
+# Favicon Preview
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A static web app for previewing favicons in realistic browser tab contexts. Upload multiple favicons and see them displayed in mockups of browser tabs across different themes and states to compare how they look "in the wild". Can also share these previews.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+**Core Functionality:**
+- Drag-drop and file picker favicon upload (.ico, .png, .svg, .webp)
+- 5 browser contexts: Chrome Dark/Light/Color, Safari Tahoe Dark/Light
+- Expanded/collapsed tab states with active/inactive styling
+- Editable favicon titles with fade-out truncation
+- Tab click activation (synchronized across all rows)
+- Horizontal scroll for overflow tabs
+- Browser tab favicon preview (eye icon + automatic on upload)
 
-## React Compiler
+**Customization:**
+- Dark/light page mode toggle (auto-detected from system preferences)
+- Chrome color theme picker with auto-generated shades
+- Dynamic tab count (starts with 5 example tabs, grows with uploads)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+**Sharing & Export:**
+- Shareable URLs with uploaded favicons
+- Client-side image compression (max 256×256—sufficient for favicons)
+- Firebase Storage hosting for shared images
+- Download button for each favicon (compressed PNG)
+- Error handling for expired/missing images
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **React** - UI framework
+- **Vite** - Build tool and dev server
+- **Tailwind CSS** - Utility-first styling
+- **Radix UI** - Accessible primitives
+- **shadcn/ui** - Pre-built components
+- **Firebase Storage** - Image hosting for shareable links
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Quick Start
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+```bash
+# Install dependencies
+npm install
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Start dev server (http://localhost:5173)
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+
+# Lint
+npm run lint
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Configuration
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Firebase Setup (Required for Shareable Links)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Create a `.env.local` file in the project root:
+
+```bash
+VITE_FIREBASE_API_KEY=your_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=favicon-preview.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=favicon-preview
+VITE_FIREBASE_STORAGE_BUCKET=favicon-preview.firebasestorage.app
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 ```
+
+**Setup steps:**
+1. Create project at https://console.firebase.google.com/
+2. Enable Storage: Build → Storage → Get Started
+3. Add web app: Project Settings → Your apps → Add app (Web)
+4. Copy firebaseConfig values to `.env.local`
+5. Deploy security rules: `firebase deploy --only storage`
+6. Restart dev server
+
+**CORS Configuration (Required):**
+```bash
+# Set CORS to allow localhost and production domains
+gsutil cors set cors.json gs://favicon-preview.firebasestorage.app
+```
+
+The `cors.json` file is included in the repo and allows image fetching from localhost and Firebase hosting domains.
+
+**Deployment:**
+```bash
+npm run build
+firebase deploy
+```
+
+**Note:** Share functionality gracefully degrades if credentials are not configured.
+
+## Architecture
+
+### Core Concept
+Client-side only, no backend. File processing happens entirely in the browser using the FileReader API.
+
+### Component Structure
+
+**Main Components:**
+- `App.tsx` - Main orchestrator with state management for uploads, themes, and sharing
+- `ShareButton.tsx` - Handles share flow (compress → upload → generate URL)
+- `Tooltip.tsx` - Custom CSS-based tooltip component with instant appearance
+- Tab components (specialized per browser/theme):
+  - `ChromeDarkTab.tsx` - Chrome dark theme tabs
+  - `ChromeLightTab.tsx` - Chrome light theme tabs
+  - `ChromeColorTab.tsx` - Chrome with customizable color theme
+  - `SafariTahoeDarkTab.tsx` - Safari dark theme floating tabs
+  - `SafariTahoeLightTab.tsx` - Safari light theme floating tabs
+
+**Utility Modules:**
+- `src/utils/imageCompression.ts` - Client-side image compression (Canvas API, max 256×256)
+- `src/utils/firebaseUpload.ts` - Firebase Storage upload with retry logic
+- `src/utils/shareUrl.ts` - URL encoding/decoding with minified JSON
+- `src/firebase.ts` - Firebase app initialization
+- `src/types.ts` - TypeScript interfaces
+
+### Layout Pattern
+Each row represents a browser context (e.g., "Chrome - Dark"). Within each row, tabs display a mix of example favicons (Google, GitHub, YouTube, etc.) and uploaded favicons. Uploaded favicons replace example ones from the middle outwards as users upload more.
+
+### File Handling
+- Supported formats: .ico, .png, .svg, .webp
+- FileReader API converts files to data URLs
+- Client-side compression resizes images to max 256×256 (sufficient for favicons)
+- Compressed images stored alongside originals (typically <50KB)
+- Multi-resolution .ico files handled by browser's native support
+
+### Shareable Links
+
+**How It Works:**
+1. User clicks Share button
+2. Favicons are compressed client-side (max 256×256)
+3. Images uploaded to Firebase Storage with retry logic
+4. State encoded as minified base64 JSON: `{f:[{u:url,t:title},...],c:color,v:version}`
+5. URL generated: `https://example.com?share=eyJmIjpbeyJ1Ijoi...`
+6. Recipients load shared URL, app fetches images and restores state
+
+**Security:**
+- Firebase Storage with upload-only rules (clients cannot delete)
+- 1MB max file size enforced server-side
+- Images-only restriction in security rules
+- Public Firebase config is safe to expose (by design)
+
+**Storage:**
+- Free tier: 5GB storage, 1GB/day downloads
+- Typical favicon: <50KB compressed
+- No automatic expiration (manual cleanup via cron script)
+
+## Browser Support
+
+Tab mockups represent:
+- **Chrome**: 3 themes (Dark, Light, Color with customizable palette)
+- **Safari Tahoe**: 2 themes (Dark, Light) with floating rounded tab design
+- **Firefox**: Deferred (similar enough to Chrome for v1)
+- **Edge**: Deferred (uses Chromium, visually similar to Chrome)
+
+Tab mockups capture browser "feel" rather than pixel-perfect recreation.

@@ -1,0 +1,7 @@
+[
+  {
+    "origin": ["http://localhost:5173", "https://favicon-preview.web.app", "https://favicon-preview.firebaseapp.com"],
+    "method": ["GET", "HEAD"],
+    "maxAgeSeconds": 3600
+  }
+]

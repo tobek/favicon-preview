@@ -1,134 +1,36 @@
-# Favicon Preview - Scope & Decisions
+# Project Scope & Development History
 
-## Project Vision
+**For project overview and architecture, see [README.md](./README.md).**
 
-A static web app that previews favicons in realistic browser tab contexts, allowing designers to see how their icons look "in the wild" alongside other tabs.
+This document tracks detailed version history, planned features, research findings, and design decisions.
 
-**Key Differentiator:** Unlike existing tools that show favicons in isolated boxes, this shows them in actual tab mockups with realistic spacing, backgrounds, and browser chrome.
+## Version History
 
-## Core Features
-
-### 1. Upload & Preview
-- Upload one or multiple favicon files (drag-drop + file picker)
-- Instant preview across multiple browser/theme contexts
-- Support formats: ICO, PNG, SVG (potentially WEBP)
-
-### 2. Contextual Display
-- Show favicons in browser tab mockups (not isolated boxes)
-- Display contexts organized in rows by type
-- Each row shows: several dummy/placeholder favicons + uploaded favicon(s)
-- Realistic tab appearance with proper spacing, shadows, borders
-
-### 3. Comparison View
-- Multiple uploaded favicons shown simultaneously
-- Easy visual scanning to compare designs side-by-side
-- See how your favicon stands out (or blends in) with others
-
-## Future Features
-
-### Export as Image
-- Screenshot/export tab previews as PNG image
-- Share visual without needing hosted images
-
-## Display Contexts (Finalized - v1)
-
-### Implemented Tab Types
-1. **Chrome Dark** - Dark theme with subtle rounded corners
-2. **Chrome Light** - Light theme with gray background
-3. **Chrome Color** - Colored theme background (customizable)
-4. **Safari Tahoe Dark** - Floating rounded tabs, dark theme
-5. **Safari Tahoe Light** - Floating rounded tabs, light theme
-
-### Tab States
-- **Expanded**: Shows favicon + title text + close button
-- **Collapsed**: Shows favicon only (activated via toggle)
-- **Active/Inactive**: Visual distinction for focused tab
-
-### Deferred for Later
-- Firefox tabs (similar enough to Chrome for v1)
-- Pinned tabs
-- Edge (uses Chromium, visually similar to Chrome)
-
-## Technical Stack
-
-- **React** - Component framework
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **Radix UI** - Accessible primitives
-- **shadcn/ui** - Pre-built components
-
-## Design Principles
-
-1. **Simplicity First** - Don't overengineer with excessive options
-2. **Useful, Not Perfect** - Tab mockups should capture the "feel" rather than pixel-perfect browser recreation
-3. **Static & Fast** - No backend, all client-side processing
-4. **Practical Utility** - Focus on contexts designers actually care about
-
-## Implementation Decisions
-
-### Design Decisions
-- [x] **Browser variants**: Chrome (3 themes) + Safari Tahoe (2 themes) = 5 total
-- [x] **Active/inactive states**: Yes, implemented with visual distinction
-- [ ] **Pinned tabs**: Deferred to future version
-- [x] **Dummy favicons**: Using popular sites (Google, GitHub, YouTube)
-
-### Technical Decisions
-- [x] **ICO handling**: Browser native support, no conversion needed
-- [x] **State management**: React useState for collapse toggle
-- [x] **Shareable links**: Implemented (migrating from ImageKit to Firebase Storage)
-- [x] **File uploads**: Implemented with drag-drop and file picker
-- [ ] **Favicon rounding**: Needs investigation - inconsistent across sites
-- [x] **Image hosting**: Firebase Storage (upload-only security rules, no credentials exposed)
-
-## Research Findings
-
-### Browser Tab Behavior
-- **Chrome**: Progressive shrinking (title+icon → icon only → no icon)
-- **Safari 2025**: Floating rounded tabs with "Liquid Glass" design
-- **Firefox**: Rounded tabs with elevation/shadow effect
-
-### Favicon Rendering Quirks
-- Different browsers prefer different formats/sizes
-- Multi-layer ICO files render differently per browser
-- Chrome/Safari use first layer, Firefox uses last layer
-- Format selection order varies (Firefox/Safari use last in HTML, Chrome has complex logic)
-
-## Out of Scope (For Now)
-
-- Favicon generation/creation tools
-- File format conversion
-- Size optimization suggestions
-- Bookmark bar previews
-- Mobile browser tabs
-- Browser extension integration
-
-## Implementation Status
-
-### Completed (v0.1)
+### v0.1 - Initial Setup
 - [x] Project setup (Vite + React + TypeScript + Tailwind)
 - [x] Tab components for all 5 contexts
 - [x] Collapse toggle functionality
 - [x] Demo page with example favicons
 - [x] Basic styling and layout
 
-### Completed (v0.2)
+### v0.2 - Core Interactivity
 
-#### 1. Dark/Light Mode Toggle ✓
+#### Dark/Light Mode Toggle ✓
 - [x] Toggle icon in top right corner
-- [x] Changes page background and body text color (not tab mockup themes, for now)
-- [x] Default: detect from browser prefers-color-scheme, fallback to time of day
+- [x] Changes page background and body text color
+- [x] Default: detect from browser prefers-color-scheme
 
-#### 2. Chrome Color Theme Picker ✓
-- [x] Color picker positioned right after "Chrome - Color Theme" heading
+#### Chrome Color Theme Picker ✓
+- [x] Color picker positioned after "Chrome - Color Theme" heading
 - [x] User picks main color, app auto-generates 2 additional shades
-- [x] Text color (black/white) chosen based on contrast with picked color
+- [x] Text color (black/white) chosen based on contrast
 
-#### 3. Tab Click Activation ✓
+#### Tab Click Activation ✓
 - [x] Clicking any tab activates it and deactivates others
 - [x] Active state synchronized across all preview rows
 - [x] Initial state: 2nd tab active by default
 
-#### 4. Favicon Upload System ✓
+#### Favicon Upload System ✓
 - [x] Upload management UI at top of page
 - [x] Drag-drop and file picker support
 - [x] Upload management shows all uploaded favicons compactly
@@ -137,111 +39,91 @@ A static web app that previews favicons in realistic browser tab contexts, allow
   - Example: 2 uploads replace positions 3 & 4 (of 6 tabs)
   - Example: 4 uploads replace positions 2, 3, 4, 5 (of 6 tabs)
 - [x] **Dynamic Tab Count**: If more than 6 favicons uploaded, add additional tabs
-- [x] **Horizontal Scroll**: Preview rows scroll horizontally if overflow, page title stays centered
-- [x] Each favicon has editable title field (editable at all times)
+- [x] **Horizontal Scroll**: Preview rows scroll horizontally if overflow
+- [x] Each favicon has editable title field
 - [x] Long titles truncate with fade-out effect (Chrome style)
 - [x] No maximum number of favicon uploads
 
-### v0.2 Implementation Decisions
-- **Dark/light mode scope**: Page background/text only (may expand to tab themes later)
-- **Color picker**: Main color + 2 auto-generated shades for Chrome Color Theme tabs
-- **Initial active tab**: Position 2 (second tab)
-- **Upload UI location**: Top of page (design refinement later)
-- **Favicon positioning**: Middle-outward replacement pattern
-- **Tab overflow**: Horizontal scroll only, centered page layout preserved
+**Implementation Decisions:**
+- Dark/light mode scope: Page background/text only
+- Color picker: Main color + 2 auto-generated shades
+- Initial active tab: Position 2 (second tab)
+- Upload UI location: Top of page
+- Favicon positioning: Middle-outward replacement pattern
+- Tab overflow: Horizontal scroll only
 
-**All v0.2 features completed and tested successfully!**
+### v0.3 - UI/UX Polish
 
-### Completed (v0.3)
-
-#### UI/UX Polish Features ✓
+#### Enhancements ✓
 1. **Color Picker Enhancement** ✓
    - [x] Remove white outline around color picker
-   - [x] Add pencil icon next to color picker (always visible, part of click target)
-   - [x] Indicates editability more clearly
+   - [x] Add pencil icon next to color picker (always visible)
 
 2. **Favicon Title Editing** ✓
    - [x] Add pencil icon next to favicon titles (always visible)
    - [x] Makes editable nature of titles more discoverable
 
 3. **Default Tab Count** ✓
-   - [x] Start with 8 example tabs by default (Google, GitHub, YouTube, Reddit, Stack Overflow, Wikipedia, Twitter, LinkedIn)
-   - [x] Provides more realistic preview context
+   - [x] Start with 8 example tabs by default
+   - [x] Sites: Google, GitHub, YouTube, Reddit, Stack Overflow, Wikipedia, Twitter, LinkedIn
 
 4. **Remove Button Icon** ✓
    - [x] Replace X icon with trash icon for remove favicon button
-   - [x] More intuitive icon for destructive action
 
 5. **Title Truncation Style** ✓
-   - [x] Change from ellipsis (...) truncation to fade-out effect
-   - [x] Matches Chrome's actual tab title behavior with gradient overlay
+   - [x] Change from ellipsis (...) to fade-out effect
+   - [x] Matches Chrome's actual tab title behavior
 
-**All v0.3 features completed and tested successfully!**
+### v0.3.1 - Bug Fixes & Refinements
 
-### Completed (v0.3.1)
-
-#### Bug Fixes & Refinements ✓
 1. **Horizontal Scroll Behavior** ✓
-   - [x] Move horizontal scroll from per-row to whole section containing all rows
-   - [x] Single scrollbar should control all tab preview rows together
+   - [x] Move horizontal scroll from per-row to whole section
+   - [x] Single scrollbar controls all tab preview rows together
 
 2. **Chrome Tab Close Button** ✓
-   - [x] Make X close button always visible on Chrome tabs (not just on hover)
-   - [x] Reference: `chrome-color-bg.png` shows expected behavior
+   - [x] Make X close button always visible on Chrome tabs
 
 3. **Favicon Title Pencil Icon Interaction** ✓
-   - [x] Add hover state to pencil icon (cursor pointer)
-   - [x] Make pencil icon clickable to focus/start editing the title input
-   - [x] Match interaction pattern of trash icon
+   - [x] Add hover state to pencil icon
+   - [x] Make pencil icon clickable to focus/start editing
 
 4. **Tab Title Fadeout on Hover** ✓
    - [x] Fix gradient becoming visible on tab hover
-   - [x] Need different fade gradient for hover state to match hover background color
+   - [x] Different fade gradient for hover state
 
-**All v0.3.1 features completed and tested successfully!**
+### v0.3.2 - Drag-and-Drop Improvements
 
-### Completed (v0.3.2)
-
-#### Drag-and-Drop Improvements ✓
 1. **Full-Page Drop Target** ✓
-   - [x] Accept dropped files anywhere on the page (not just upload section)
-   - [x] Entire window becomes drop zone when dragging files
+   - [x] Accept dropped files anywhere on the page
+   - [x] Entire window becomes drop zone
 
 2. **Drag Overlay Effect** ✓
-   - [x] Show full-page visual overlay when dragging files over the window
+   - [x] Full-page visual overlay when dragging files
    - [x] Semi-transparent backdrop with blur effect
    - [x] Dashed blue border around edges
-   - [x] Large upload icon and "Drop favicon files here" message in center
+   - [x] Large upload icon and message in center
    - [x] Overlay adapts to dark/light mode
-   - [x] Proper drag state management to prevent flickering
+   - [x] Proper drag state management
 
-**All v0.3.2 features completed and tested successfully!**
+### v0.3.3 - Browser Tab Preview
 
-### Completed (v0.3.3)
-
-#### Favicon Preview in Browser Tab ✓
 1. **Eye Icon for Manual Preview** ✓
-   - [x] Add eye icon button next to pencil and trash icons for each uploaded favicon
-   - [x] Clicking eye icon previews that favicon in the actual browser tab
-   - [x] Uses inline SVG in Feather/Lucide Icons style
+   - [x] Add eye icon button for each uploaded favicon
+   - [x] Clicking eye icon previews favicon in actual browser tab
    - [x] Includes hover states and tooltip
 
 2. **Automatic Preview on Upload** ✓
    - [x] Automatically set uploaded favicon as browser tab icon
    - [x] When uploading multiple favicons, use the last one
    - [x] Works for both drag-drop and file picker uploads
-   - [x] Provides immediate visual feedback in real browser context
 
-**All v0.3.3 features completed and tested successfully!**
+### v0.4.0 - UI Improvements
 
-### Completed (v0.4.0)
-
-#### UI/UX Improvements ✓
 1. **Instant Tooltips** ✓
    - [x] Create custom CSS-based Tooltip component
-   - [x] Add instant-appearing tooltips to edit, preview, and remove icons
-   - [x] Replace slow browser title tooltips with smooth 150ms fade-in
-   - [x] Tooltips appear above icons with dark background and arrow pointer
+   - [x] Add tooltips to edit, preview, and remove icons
+   - [x] Smooth 150ms fade-in (replacing slow browser tooltips)
+   - [x] Dark background with arrow pointer
 
 2. **Mobile Responsiveness** ✓
    - [x] Hide dark/light mode toggle on mobile devices
@@ -249,49 +131,42 @@ A static web app that previews favicons in realistic browser tab contexts, allow
 
 3. **Default Tab Count Adjustment** ✓
    - [x] Reduce default starting tabs from 8 to 5
-   - [x] More focused initial view: Google, GitHub, YouTube, Reddit, Stack Overflow
+   - [x] Sites: Google, GitHub, YouTube, Reddit, Stack Overflow
 
-**All v0.4.0 features completed and tested successfully!**
+### v0.5.0 - Shareable Links (ImageKit)
 
-### Completed (v0.5.0) - Partial
+**Note: ImageKit implementation replaced by Firebase in v0.5.1 due to security concerns (private key exposure)**
 
-#### Shareable Links (ImageKit - Being Replaced)
 1. **Image Compression** ✓
-   - [x] Client-side image compression (max 1024x1024, maintains aspect ratio)
+   - [x] Client-side compression (max 1024×1024, maintains aspect ratio)
    - [x] Automatic retry logic with exponential backoff
    - [x] Concurrent upload support (max 3 parallel)
-   - [x] Partial failure handling (share with successful uploads)
+   - [x] Partial failure handling
 
 2. **Share Button & URL Generation** ✓
-   - [x] Share button appears when favicons are uploaded
-   - [x] Uploads progress indicator
-   - [x] Minified base64-encoded JSON URLs (shorter keys for reduced URL length)
-   - [x] Share URL encodes: favicons (URLs + titles) + Chrome color theme
-   - [x] Copy-to-clipboard functionality with fallback
+   - [x] Share button appears when favicons uploaded
+   - [x] Upload progress indicator
+   - [x] Minified base64-encoded JSON URLs
+   - [x] Share URL encodes: favicons + Chrome color theme
+   - [x] Copy-to-clipboard functionality
    - [x] URL length warning for browser limits
 
 3. **Load from Shared URL** ✓
-   - [x] Automatic detection of share parameter on page load
-   - [x] Image URL validation to detect expired/missing images
+   - [x] Automatic detection of share parameter
+   - [x] Image URL validation
    - [x] Error banner for unavailable favicons
-   - [x] Loading indicator during shared state load
-   - [x] Restores Chrome color theme from shared URL
+   - [x] Loading indicator
+   - [x] Restores Chrome color theme
 
 4. **Download Favicons** ✓
    - [x] Download button for each uploaded favicon
-   - [x] Downloads compressed version (smaller file size)
-   - [x] Sanitized filename based on favicon title
+   - [x] Downloads compressed version
+   - [x] Sanitized filename based on title
 
-5. **⚠️ ImageKit Security Issue**
-   - ImageKit requires private key in client code
-   - Private key grants delete access (not just upload)
-   - **Decision: Migrate to Firebase Storage**
+### v0.5.1 - Firebase Storage Migration
 
-**See [SHARING-PLAN.md](./SHARING-PLAN.md) for detailed migration plan.**
+**Replaced ImageKit with Firebase Storage for security**
 
-### Completed (v0.5.1) - Firebase Migration
-
-#### Replace ImageKit with Firebase Storage ✓
 1. **Firebase Storage Integration** ✓
    - [x] Create Firebase project and configure
    - [x] Firebase initialization (`src/firebase.ts`)
@@ -306,38 +181,81 @@ A static web app that previews favicons in realistic browser tab contexts, allow
    - [x] No client delete access
 
 3. **Compression Optimization** ✓
-   - [x] Reduced max dimensions from 1024x1024 to 256x256 (sufficient for favicons)
-   - [x] Significantly smaller file sizes for reliable uploads
+   - [x] Reduced max dimensions from 1024×1024 to 256×256
+   - [x] Significantly smaller file sizes
 
 4. **Firebase Hosting** ✓
    - [x] Configured `firebase.json` for hosting
    - [x] Deploy with `npm run build && firebase deploy`
 
-5. **Cleanup Strategy**
-   - [ ] Create cleanup script for 6-month expiration
-   - [ ] Document monthly cron job process
-
-**Why Firebase over ImageKit/S3:**
-- No credentials exposed (public Firebase config is designed to be public)
+**Why Firebase over ImageKit:**
+- No credentials exposed (public Firebase config is safe by design)
 - Security rules enforce upload-only (clients cannot delete)
 - File size/type limits in security rules
 - Free tier: 5GB storage, 1GB/day downloads
 - Pricing: ~$0/mo for 100-1000 MAU
 
-**All v0.5.1 features completed and tested successfully!**
+## Planned Features
 
-### Planned (v0.6.0)
+### v0.6.0
+- Update icon rounding behavior: no rounding on Chrome tabs, 2px border radius on Safari tabs
+- Active state for "preview in browser tab" button (eye icon shows which favicon is currently in browser tab)
+- When loading a shared link, set first shared favicon in browser tab with active state
+- Show loading symbol in favicon box while image compression happens
 
-- Update icon rounding behavior. on the chrome tabs, no rounding. on safari tabs, 2px border radius
-- When you hit the "preview in browser tab" button on a favicon, it should change the eye icon on that favicon to an active state (and set any others to not active). update tooltip text accordingly
-- When loading a shared link, it should set one (first?) of the shared favicons in the browser tab and set the active state
-- When adding an icon, there's a delay while image compression happens. show the favicon box (the one with the action icons) with a loading symbol while compression happens
-
-### Future Features (v1.0)
-- Deploy to firebase app and set up scripts for this
-- Create shortlinks for shared previews using firebase storage
+### v1.0+ (Future)
+- Deploy to Firebase Hosting
+- Create shortlinks for shared previews using Firebase Storage
 - Support dragging in .ico files (currently nothing happens)
 - Improve visual fidelity based on user feedback
-    - Safari tabs fill available space I think?
-    - Check Safari too-long title truncation style
+  - Safari tabs fill available space?
+  - Check Safari too-long title truncation style
 - More tab contexts if needed
+- Cleanup script for 6-month expiration (manual cron job)
+
+## Research Findings
+
+### Browser Tab Behavior
+- **Chrome**: Progressive shrinking (title+icon → icon only → no icon)
+- **Safari 2025**: Floating rounded tabs with "Liquid Glass" design
+- **Firefox**: Rounded tabs with elevation/shadow effect
+
+### Favicon Rendering Quirks
+- Different browsers prefer different formats/sizes
+- Multi-layer ICO files render differently per browser
+- Chrome/Safari use first layer, Firefox uses last layer
+- Format selection order varies (Firefox/Safari use last in HTML, Chrome has complex logic)
+
+## Design Decisions
+
+### Browser Variants (Finalized)
+- **Chrome**: 3 themes (Dark, Light, Color with customizable palette)
+- **Safari Tahoe**: 2 themes (Dark, Light) with floating rounded tab design
+- **Firefox**: Deferred (similar enough to Chrome for v1)
+- **Edge**: Deferred (uses Chromium, visually similar to Chrome)
+
+### Tab States Implemented
+- **Expanded**: Shows favicon + title + close button
+- **Collapsed**: Shows favicon only (toggle available)
+- **Active/Inactive**: Visual distinction for focused tab
+- **Pinned tabs**: Deferred to future version
+
+### Example Favicons
+Default tabs show popular sites (Google, GitHub, YouTube, Reddit, Stack Overflow) to provide realistic context. Uploaded favicons replace these from middle outwards.
+
+### Technical Decisions
+- [x] **ICO handling**: Browser native support, no conversion needed
+- [x] **State management**: React useState for all state
+- [x] **Shareable links**: Implemented with Firebase Storage
+- [x] **File uploads**: Implemented with drag-drop and file picker
+- [ ] **Favicon rounding**: Needs investigation - inconsistent across sites
+- [x] **Image hosting**: Firebase Storage (upload-only security rules)
+
+## Out of Scope
+
+- Favicon generation/creation tools
+- File format conversion
+- Size optimization suggestions
+- Bookmark bar previews
+- Mobile browser tabs
+- Browser extension integration

@@ -1,185 +1,58 @@
-# CLAUDE.md
+# Agent Instructions for Claude Code
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+**For project overview, architecture, and technical details, see [README.md](./README.md).**
 
-## Project Overview
+**For feature roadmap, version history, research, and design decisions, see [SCOPE.md](./SCOPE.md).**
 
-A static web app for previewing favicons in realistic browser tab contexts. Users can upload multiple favicons and see them displayed in mockups of browser tabs across different states (light/dark themes, expanded/compressed tabs) to compare how they look "in the wild."
+## Component Organization
 
-**Key Differentiator:** Shows favicons in realistic tab mockups (not isolated boxes), allowing side-by-side comparison with dummy favicons for realistic context.
-
-**See SCOPE.md for detailed requirements, decisions, and research findings.**
-
-### Current Features (v0.5.1)
-
-**Core Functionality:**
-- Drag-drop and file picker favicon upload (.ico, .png, .svg, .webp)
-- 5 browser contexts: Chrome Dark/Light/Color, Safari Tahoe Dark/Light
-- Expanded/collapsed tab states with active/inactive styling
-- Editable favicon titles with fade-out truncation
-- Tab click activation (synchronized across all rows)
-- Horizontal scroll for overflow tabs
-
-**Customization:**
-- Dark/light page mode toggle (auto-detected from system preferences)
-- Chrome color theme picker with auto-generated shades
-- Dynamic tab count (starts with 5 example tabs, grows with uploads)
-
-**Sharing & Export:**
-- Share button generates URL with uploaded favicons
-- Client-side image compression (max 256x256 - sufficient for favicons)
-- Firebase Storage hosting for shared images (secure, upload-only)
-- Download button for each favicon (compressed PNG)
-- Load shared previews from URL
-- Error handling for expired/missing images
-
-**UI Polish:**
-- Instant tooltips (150ms fade-in) for all action icons
-- Full-page drag overlay with visual feedback
-- Browser tab favicon preview (eye icon + automatic on upload)
-- Mobile-responsive (hides mode toggle on small screens)
-
-## Tech Stack
-
-- **React** - UI framework
-- **Vite** - Build tool and dev server
-- **Tailwind CSS** - Utility-first styling
-- **Radix UI** - Accessible primitives
-- **shadcn/ui** - Pre-built components on top of Radix
-
-## Architecture
-
-### Core Concept
-Client-side only, no backend. File processing happens entirely in the browser using FileReader API.
-
-### Component Structure
+**Tab Components:**
+- `src/components/tabs/ChromeDarkTab.tsx`
+- `src/components/tabs/ChromeLightTab.tsx`
+- `src/components/tabs/ChromeColorTab.tsx`
+- `src/components/tabs/SafariTahoeDarkTab.tsx`
+- `src/components/tabs/SafariTahoeLightTab.tsx`
 
 **Main Components:**
-- `App.tsx` - Main orchestrator with state management for uploads, themes, and sharing
-- `ShareButton.tsx` - Handles share flow (compress → upload → generate URL)
-- `Tooltip.tsx` - Custom CSS-based tooltip component with instant appearance
-- Tab components (specialized per browser/theme):
-  - `ChromeDarkTab.tsx` - Chrome dark theme tabs
-  - `ChromeLightTab.tsx` - Chrome light theme tabs
-  - `ChromeColorTab.tsx` - Chrome with customizable color theme
-  - `SafariTahoeDarkTab.tsx` - Safari dark theme floating tabs
-  - `SafariTahoeLightTab.tsx` - Safari light theme floating tabs
+- `src/App.tsx` - State management for uploads, themes, sharing
+- `src/components/ShareButton.tsx` - Share flow orchestration
+- `src/components/Tooltip.tsx` - Custom CSS tooltip component
 
-**Utility Modules:**
-- `src/utils/imageCompression.ts` - Client-side image compression (Canvas API, max 256x256)
-- `src/utils/firebaseUpload.ts` - Firebase Storage upload with retry logic
-- `src/utils/shareUrl.ts` - URL encoding/decoding with minified JSON
-- `src/firebase.ts` - Firebase app initialization
-- `src/types.ts` - TypeScript interfaces for state and API responses
-
-**Layout Pattern:**
-Each row represents a browser context (e.g., "Chrome - Dark"). Within each row, tabs display a mix of example favicons (Google, GitHub, YouTube, etc.) and uploaded favicons, replacing from the middle outwards as users upload more.
-
-### File Handling
-- Support: .ico, .png, .svg, .webp
-- Use FileReader API to convert to data URLs
-- Client-side compression: images resized to max 256x256 (sufficient for favicons)
-- Compressed images stored alongside originals (typically under 50KB)
-- Handle multi-resolution .ico files appropriately
-- State management: local React state
-
-### Shareable Links (v0.5.1)
-- **Implemented**: Generate shareable URLs that encode favicon previews
-- **Image Hosting**: Firebase Storage (5GB free storage, 1GB/day downloads)
-- **URL Format**: Minified base64-encoded JSON (reduces URL length by ~40%)
-- **Data Shared**: Favicon URLs + titles + Chrome color theme (NOT UI state)
-- **Error Handling**: Validates image URLs, shows error banner for expired/missing images
-- **Download**: Each uploaded favicon can be downloaded as compressed PNG
-- **Security**: Upload-only rules (clients cannot delete), 1MB max file size, images only
-- **Configuration**: Requires Firebase config in `.env.local` (see Configuration section)
-
-### Styling Approach
-- Tab mockups built with Tailwind utilities
-- CSS custom properties for theming (light/dark)
-- Maintain visual consistency while capturing browser "feel" (not pixel-perfect replicas)
-
-## Development Commands
-
-```bash
-# Install dependencies
-npm install
-
-# Start dev server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Lint
-npm run lint
-```
-
-## Configuration
-
-### Firebase Setup (for Shareable Links & Hosting)
-
-Create a `.env.local` file in the project root with your Firebase config:
-
-```bash
-VITE_FIREBASE_API_KEY=your_api_key_here
-VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
-```
-
-**Setup steps:**
-1. Create project at https://console.firebase.google.com/
-2. Enable Storage: Build → Storage → Get Started
-3. Add web app: Project Settings → Your apps → Add app (Web)
-4. Copy firebaseConfig values to `.env.local`
-5. Deploy security rules: `firebase deploy --only storage`
-6. Restart dev server
-
-**Deployment:**
-```bash
-npm run build
-firebase deploy
-```
-
-**Note:** Share functionality gracefully degrades if credentials are not configured.
+**Utilities:**
+- `src/utils/imageCompression.ts` - Canvas-based image compression
+- `src/utils/firebaseUpload.ts` - Firebase Storage uploads
+- `src/utils/shareUrl.ts` - URL encoding/decoding
+- `src/firebase.ts` - Firebase initialization
+- `src/types.ts` - TypeScript interfaces
 
 ## Visual Testing
 
-Use the `webapp-testing` skill to verify visual appearance after making UI changes unless it is so simply that you're certain no visual inspection is needed:
+Use the `webapp-testing` skill to verify visual changes unless the change is trivial and you're certain no visual inspection is needed.
 
-```bash
-# Example: Take a screenshot to verify changes
-claude skill webapp-testing
-# Then write a Playwright script to capture screenshots
-```
-
-**When to use webapp-testing:**
+**When to use:**
 - After implementing visual/UI changes to verify appearance
 - Before committing significant UI updates
-- Focus on visual verification; manual interaction testing is more efficient for UX
 - Use full-page screenshots to capture all preview contexts at once
 
-## Design Decisions For Mock Tabs
+**When NOT to use:**
+- Trivial changes where visual outcome is certain
+- Manual interaction testing is more efficient for UX flows
 
-**Browser Variants (Finalized):**
-- Chrome: 3 themes (Dark, Light, Color with customizable palette)
-- Safari Tahoe: 2 themes (Dark, Light) with floating rounded tab design
-- Firefox: Deferred (similar enough to Chrome for v1)
-- Edge: Deferred (uses Chromium, visually similar to Chrome)
+## Development Guidelines
 
-**Tab States Implemented:**
-- Expanded: Shows favicon + title + close button
-- Collapsed: Shows favicon only (toggle available)
-- Active/Inactive: Visual distinction for focused tab
-- Pinned tabs: Deferred to future version
+**Avoid Over-Engineering:**
+- Only make changes that are directly requested or clearly necessary
+- Don't add features, refactor code, or make "improvements" beyond what was asked
+- Don't add error handling for scenarios that can't happen
+- Don't create abstractions for one-time operations
+- Three similar lines of code is better than a premature abstraction
 
-**Example Favicons:**
-Default tabs show popular sites (Google, GitHub, YouTube, Reddit, Stack Overflow) to provide realistic context. Uploaded favicons replace these from middle outwards.
+**Code Style:**
+- Tab mockups capture browser "feel" rather than pixel-perfect recreation
+- Use Tailwind utilities for styling
+- Avoid creating new files unless absolutely necessary—prefer editing existing ones
+- No emojis unless explicitly requested
 
-**Simplicity First:** Avoid over-engineering. Tab mockups capture the "feel" of each browser rather than pixel-perfect recreation. All processing is client-side with no complex backend infrastructure.
+**State Management:**
+- Local React state only (no external state management)
+- All file processing happens client-side (FileReader API)
