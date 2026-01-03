@@ -1,5 +1,6 @@
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase';
+import { firebaseConfig } from '../config/firebase.config';
 
 export interface FirebaseUploadResult {
   url: string;
@@ -44,10 +45,7 @@ export async function uploadToFirebase(
  * @returns true if Firebase config exists
  */
 export function hasFirebaseConfig(): boolean {
-  return !!(
-    import.meta.env.VITE_FIREBASE_API_KEY &&
-    import.meta.env.VITE_FIREBASE_STORAGE_BUCKET
-  );
+  return !!(firebaseConfig.apiKey && firebaseConfig.storageBucket);
 }
 
 /**

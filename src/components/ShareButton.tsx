@@ -49,7 +49,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
     setPartialFailures([]);
 
     if (!hasFirebaseConfig()) {
-      setErrorMessage('Firebase not configured. Please add Firebase credentials to your .env.local file.');
+      setErrorMessage('Firebase not configured. Please check src/config/firebase.config.ts');
       setShareState('error');
       return;
     }
@@ -176,7 +176,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
       <div className={`text-sm ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
         <p>Firebase not configured</p>
         <p className="text-xs mt-1">
-          Add Firebase credentials to .env.local (see .env.local.example)
+          Check src/config/firebase.config.ts
         </p>
       </div>
     );

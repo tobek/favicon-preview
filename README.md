@@ -59,31 +59,20 @@ npm run lint
 
 ### Firebase Setup (Required for Shareable Links)
 
-Create a `.env.local` file in the project root:
-
-```bash
-VITE_FIREBASE_API_KEY=your_api_key_here
-VITE_FIREBASE_AUTH_DOMAIN=favicon-preview.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=favicon-preview
-VITE_FIREBASE_STORAGE_BUCKET=favicon-preview.firebasestorage.app
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
-VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
-```
+Firebase configuration is stored in `src/config/firebase.config.ts` and committed to the repo. The config values are designed to be public (security is enforced via Firebase Security Rules).
 
 **Setup steps:**
 1. Create project at https://console.firebase.google.com/
 2. Enable Storage: Build → Storage → Get Started
 3. Enable Firestore: Build → Firestore Database → Create Database (production mode)
 4. Add web app: Project Settings → Your apps → Add app (Web)
-5. Copy firebaseConfig values to `.env.local`
+5. Copy firebaseConfig values to `src/config/firebase.config.ts`
 6. Deploy security rules: `firebase deploy --only storage,firestore`
-7. Restart dev server
 
 **CORS Configuration (Required):**
 ```bash
 # Set CORS to allow localhost and production domains
-gsutil cors set cors.json gs://favicon-preview.firebasestorage.app
+gsutil cors set cors.json gs://your-bucket.firebasestorage.app
 ```
 
 The `cors.json` file is included in the repo and allows image fetching from localhost and Firebase hosting domains.
@@ -93,8 +82,6 @@ The `cors.json` file is included in the repo and allows image fetching from loca
 npm run build
 firebase deploy
 ```
-
-**Note:** Share functionality gracefully degrades if credentials are not configured.
 
 ## Architecture
 

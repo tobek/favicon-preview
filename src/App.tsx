@@ -513,7 +513,7 @@ function App() {
           <p className={`text-lg transition-colors ${
             isDarkMode ? 'text-slate-400' : 'text-slate-600'
           }`}>
-            See how your favicons look in browser tabs across different contexts
+            Preview and share how your favicons will look in browser tab mockups
           </p>
         </div>
 
