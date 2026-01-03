@@ -21,8 +21,9 @@
 **Utilities:**
 - `src/utils/imageCompression.ts` - Canvas-based image compression
 - `src/utils/firebaseUpload.ts` - Firebase Storage uploads
-- `src/utils/shareUrl.ts` - URL encoding/decoding
-- `src/firebase.ts` - Firebase initialization
+- `src/utils/shareUrl.ts` - URL encoding/decoding (fallback for long URLs)
+- `src/utils/shortlink.ts` - Firestore shortlink operations (generate, create, load)
+- `src/firebase.ts` - Firebase initialization (Storage + Firestore)
 - `src/types.ts` - TypeScript interfaces
 
 ## Visual Testing

@@ -19,9 +19,10 @@ A static web app for previewing favicons in realistic browser tab contexts. Uplo
 - Dynamic tab count (starts with 5 example tabs, grows with uploads)
 
 **Sharing & Export:**
-- Shareable URLs with uploaded favicons
+- Shareable shortlinks (e.g., `/?s=abc1234`) with uploaded favicons
 - Client-side image compression (max 256×256—sufficient for favicons)
 - Firebase Storage hosting for shared images
+- Firestore Database for shortlink mappings
 - Download button for each favicon (compressed PNG)
 - Error handling for expired/missing images
 
@@ -33,6 +34,7 @@ A static web app for previewing favicons in realistic browser tab contexts. Uplo
 - **Radix UI** - Accessible primitives
 - **shadcn/ui** - Pre-built components
 - **Firebase Storage** - Image hosting for shareable links
+- **Firestore Database** - Shortlink storage
 
 ## Quick Start
 
@@ -72,10 +74,11 @@ VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
 **Setup steps:**
 1. Create project at https://console.firebase.google.com/
 2. Enable Storage: Build → Storage → Get Started
-3. Add web app: Project Settings → Your apps → Add app (Web)
-4. Copy firebaseConfig values to `.env.local`
-5. Deploy security rules: `firebase deploy --only storage`
-6. Restart dev server
+3. Enable Firestore: Build → Firestore Database → Create Database (production mode)
+4. Add web app: Project Settings → Your apps → Add app (Web)
+5. Copy firebaseConfig values to `.env.local`
+6. Deploy security rules: `firebase deploy --only storage,firestore`
+7. Restart dev server
 
 **CORS Configuration (Required):**
 ```bash

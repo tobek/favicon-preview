@@ -5,32 +5,32 @@ import {
   hasFirebaseConfig,
 } from '../utils/firebaseUpload';
 import { generateShareUrl, getUrlLengthWarning } from '../utils/shareUrl';
+import { createShortlink } from '../utils/shortlink';
 
 interface ShareButtonProps {
   uploadedFavicons: CompressedFavicon[];
   chromeColorTheme: string;
   isDarkMode: boolean;
+  faviconsModified: boolean;
+  onShareSuccess: () => void;
 }
 
 type ShareState = 'idle' | 'uploading' | 'success' | 'error';
 
-export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: ShareButtonProps) {
+export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, faviconsModified, onShareSuccess }: ShareButtonProps) {
   const [shareState, setShareState] = useState<ShareState>('idle');
   const [shareUrl, setShareUrl] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0 });
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [partialFailures, setPartialFailures] = useState<Array<{ id: string; error: string }>>([]);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [sharedFaviconIds, setSharedFaviconIds] = useState<string[]>([]);
   const linkCopiedTimeoutRef = useRef<number | null>(null);
 
   const hasCredentials = hasFirebaseConfig();
   const canShare = uploadedFavicons.length > 0 && hasCredentials;
 
   // Check if favicons have changed since last share
-  const faviconsChanged = shareState === 'success' &&
-    (uploadedFavicons.length !== sharedFaviconIds.length ||
-     !uploadedFavicons.every(f => sharedFaviconIds.includes(f.id)));
+  const faviconsChanged = shareState === 'success' && faviconsModified;
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -81,7 +81,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
 
       // Check for failures
       const failures = uploadResults.filter((result) => result.error !== null);
-      const successes = uploadResults.filter((result) => result.url !== null);
+      const successes = uploadResults.filter((result) => !!result.url);
 
       if (successes.length === 0) {
         setErrorMessage('All uploads failed. Please check your network connection and try again.');
@@ -108,10 +108,30 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
         })
         .filter((f): f is { url: string; title: string } => f !== null);
 
-      const url = generateShareUrl(successfulFavicons, chromeColorTheme);
+      // Update favicons with uploaded URLs for shortlink creation
+      const uploadedFaviconsWithUrls = uploadedFavicons.map(f => {
+        const uploadResult = uploadResults.find(r => r.id === f.id);
+        return {
+          ...f,
+          uploadedImageUrl: uploadResult?.url || undefined
+        };
+      }).filter(f => f.uploadedImageUrl); // Only include successfully uploaded favicons
+
+      // Try to create shortlink
+      const shortId = await createShortlink(uploadedFaviconsWithUrls, chromeColorTheme);
+
+      let url: string;
+      if (shortId) {
+        // Success - use short URL
+        url = `${window.location.origin}/?s=${shortId}`;
+      } else {
+        // Failed - fall back to long URL (silent)
+        url = generateShareUrl(successfulFavicons, chromeColorTheme);
+      }
+
       setShareUrl(url);
-      setSharedFaviconIds(uploadedFavicons.map(f => f.id));
       setShareState('success');
+      onShareSuccess();
     } catch (error) {
       console.error('Share failed:', error);
       setErrorMessage(error instanceof Error ? error.message : 'Failed to create share link');
@@ -267,7 +287,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode }: 
                   Favicons updated
                 </p>
                 <p className={`text-xs mt-1 ${isDarkMode ? 'text-blue-400/80' : 'text-blue-700'}`}>
-                  You've added or removed favicons. Create a new link to share the updated preview.
+                  Create a new link to share the updated preview.
                 </p>
                 <button
                   onClick={() => {

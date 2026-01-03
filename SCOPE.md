@@ -232,13 +232,55 @@ This document tracks detailed version history, planned features, research findin
 - PRs to main: Lint, build, and deploy to preview channel
 - Push to main: Lint, build, and deploy to production
 
+### v1.1 - Shortlinks
+
+1. **Firestore Database Integration** ✓
+   - [x] Firestore database setup with security rules
+   - [x] Document structure: shortlinks collection with favicons, color, version, createdAt
+   - [x] Upload-only security rules (max 50 favicons, validation)
+
+2. **Short ID Generation** ✓
+   - [x] 7-character IDs using nanoid
+   - [x] Alphabet: 0-9A-Za-z (62 characters, URL-safe)
+   - [x] Collision detection with retry logic (max 3 attempts)
+
+3. **Share Flow Updates** ✓
+   - [x] Create shortlink after successful image uploads
+   - [x] URL format: `/?s=<shortId>` (query parameter)
+   - [x] Silent fallback to long base64 URLs on Firestore failure
+   - [x] No warning banner for fallback
+
+4. **Load Flow Updates** ✓
+   - [x] Check `?s=` parameter first for shortlinks
+   - [x] Load from Firestore by shortId
+   - [x] Fallback to `?share=` parameter (for long URLs)
+   - [x] Error handling for missing/invalid shortlinks
+
+**Implementation Details:**
+- Storage: Firestore Database (not Firebase Storage)
+- ID length: 7 characters (collision-resistant for millions of links)
+- URL format: Query parameter `?s=abc1234` for simplicity
+- Backwards compatibility: Long URLs still supported as fallback
+- Security: Public read, validated write, no client deletes
+- Free tier: 50k reads/day, 20k writes/day (sufficient for most usage)
+
+**Files Created:**
+- `firestore.rules` - Security rules for shortlinks collection
+- `src/utils/shortlink.ts` - Core shortlink logic (generate, create, load)
+
+**Files Modified:**
+- `firebase.json` - Added Firestore rules configuration
+- `src/firebase.ts` - Initialize Firestore database
+- `src/types.ts` - Added ShortlinkDocument interface
+- `src/components/ShareButton.tsx` - Integrated shortlink creation
+- `src/App.tsx` - Load from `?s=` parameter with fallback
+
 ## Planned Features
 
 ### v1.x+ (Future)
-1. Create shortlinks for shared previews using Firebase Storage
-2. Support dragging in .ico files (currently nothing happens)
-3. Cleanup script to remove all uploaded favicons in Firebase that are older than 6 months (ensure that loading previews with missing favicons fails gracefully)
-4. Improve visual fidelity based on research
+1. Support dragging in .ico files (currently nothing happens)
+2. Cleanup script to remove all uploaded favicons and shortlinks in Firebase that are older than 6 months (ensure that loading previews with missing favicons/shortlinks fails gracefully)
+3. Improve visual fidelity based on research
   - Safari tabs fill available space?
   - Check Safari too-long title truncation style
 

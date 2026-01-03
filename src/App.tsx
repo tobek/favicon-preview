@@ -11,6 +11,7 @@ import { Tooltip } from './components/Tooltip';
 import { compressImage } from './utils/imageCompression';
 import { ShareButton } from './components/ShareButton';
 import { parseShareUrl, validateSharedState } from './utils/shareUrl';
+import { loadShortlink } from './utils/shortlink';
 
 // Example favicons - using public URLs for now (currently unused but kept for future reference)
 // const EXAMPLE_FAVICONS = [
@@ -38,6 +39,11 @@ function getInitialDarkMode(): boolean {
   // Fallback to time of day (6pm - 6am is dark mode)
   const hour = new Date().getHours();
   return hour >= 18 || hour < 6;
+}
+
+// Detect initial collapsed state based on viewport width
+function getInitialCollapsedState(): boolean {
+  return window.innerWidth < 500;
 }
 
 // Color utility functions
@@ -133,7 +139,7 @@ function mergeFavicons(dummyTabs: typeof DUMMY_TABS, uploadedFavicons: Compresse
 }
 
 function App() {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(getInitialCollapsedState);
   const [isDarkMode, setIsDarkMode] = useState(getInitialDarkMode);
   const [chromeColorTheme, setChromeColorTheme] = useState('#3d5f5a');
   const [activeTabIndex, setActiveTabIndex] = useState(1); // 2nd tab is initially active
@@ -143,6 +149,7 @@ function App() {
   const [isLoadingShared, setIsLoadingShared] = useState(false);
   const [currentBrowserTabFaviconId, setCurrentBrowserTabFaviconId] = useState<string | null>(null);
   const [loadingFavicons, setLoadingFavicons] = useState<Array<{ id: string; fileName: string }>>([]);
+  const [faviconsModified, setFaviconsModified] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
 
@@ -152,8 +159,23 @@ function App() {
   // Load shared state from URL on mount
   useEffect(() => {
     const loadSharedState = async () => {
-      const sharedState = parseShareUrl();
-      if (!sharedState) return;
+      const params = new URLSearchParams(window.location.search);
+
+      // Priority 1: Check for shortlink (?s=)
+      const shortId = params.get('s');
+      let sharedState = null;
+
+      if (shortId) {
+        sharedState = await loadShortlink(shortId);
+        if (!sharedState) {
+          setLoadError('This share link is invalid or has expired.');
+          return;
+        }
+      } else {
+        // Priority 2: Check for long URL (?share=) - fallback only
+        sharedState = parseShareUrl();
+        if (!sharedState) return;
+      }
 
       setIsLoadingShared(true);
 
@@ -251,6 +273,7 @@ function App() {
     if (newFavicons.length > 0) {
       const updatedFavicons = [...uploadedFavicons, ...newFavicons];
       setUploadedFavicons(updatedFavicons);
+      setFaviconsModified(true);
 
       // Calculate which tab position the first new favicon will occupy
       const currentUploadCount = uploadedFavicons.length;
@@ -312,6 +335,7 @@ function App() {
   // Remove favicon
   const removeFavicon = (id: string) => {
     setUploadedFavicons(uploadedFavicons.filter(f => f.id !== id));
+    setFaviconsModified(true);
   };
 
   // Update favicon title
@@ -319,6 +343,7 @@ function App() {
     setUploadedFavicons(
       uploadedFavicons.map(f => (f.id === id ? { ...f, title: newTitle } : f))
     );
+    setFaviconsModified(true);
   };
 
   // Preview favicon in actual browser tab
@@ -490,23 +515,6 @@ function App() {
           }`}>
             See how your favicons look in browser tabs across different contexts
           </p>
-
-          {/* Collapse Toggle */}
-          <div className="flex items-center justify-center gap-3 pt-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isCollapsed}
-                onChange={(e) => setIsCollapsed(e.target.checked)}
-                className="w-4 h-4 rounded"
-              />
-              <span className={`text-sm font-medium transition-colors ${
-                isDarkMode ? 'text-slate-300' : 'text-slate-700'
-              }`}>
-                Collapsed tabs
-              </span>
-            </label>
-          </div>
         </div>
 
         {/* Favicon Upload Section */}
@@ -591,7 +599,7 @@ function App() {
                             className={`text-sm px-1 py-0.5 rounded border-none outline-none bg-transparent transition-colors ${
                               isDarkMode ? 'text-slate-200' : 'text-slate-900'
                             }`}
-                            style={{ width: `${Math.max(favicon.title.length * 8, 60)}px` }}
+                            style={{ width: `${Math.max(favicon.title.length + 1, 8)}ch` }}
                           />
                           <Tooltip content="Edit title">
                             <svg
@@ -673,6 +681,8 @@ function App() {
                   uploadedFavicons={uploadedFavicons}
                   chromeColorTheme={chromeColorTheme}
                   isDarkMode={isDarkMode}
+                  faviconsModified={faviconsModified}
+                  onShareSuccess={() => setFaviconsModified(false)}
                 />
               </div>
             </Tooltip>
@@ -681,12 +691,32 @@ function App() {
               uploadedFavicons={uploadedFavicons}
               chromeColorTheme={chromeColorTheme}
               isDarkMode={isDarkMode}
+              faviconsModified={faviconsModified}
+              onShareSuccess={() => setFaviconsModified(false)}
             />
           )}
         </div>
 
         {/* Preview Rows - Single Scrollable Container */}
-        <div className="overflow-x-auto">
+        <div className="relative">
+          {/* Collapse Toggle - Positioned absolutely at right, aligned with first heading */}
+          <div className="absolute right-0 top-0 z-10">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={isCollapsed}
+                onChange={(e) => setIsCollapsed(e.target.checked)}
+                className="w-4 h-4 rounded"
+              />
+              <span className={`text-sm font-medium transition-colors ${
+                isDarkMode ? 'text-slate-300' : 'text-slate-700'
+              }`}>
+                Collapse tabs
+              </span>
+            </label>
+          </div>
+
+          <div className="overflow-x-auto">
           <div className="min-w-max space-y-8 pb-4">
             {/* Chrome Dark */}
             <div className="space-y-3">
@@ -831,6 +861,7 @@ function App() {
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>

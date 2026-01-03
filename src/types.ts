@@ -50,3 +50,15 @@ export interface ImageKitResponse {
   size: number;
   filePath: string;
 }
+
+// Firestore shortlink document structure
+export interface ShortlinkDocument {
+  id: string;
+  favicons: Array<{
+    url: string;
+    title: string;
+  }>;
+  color: string;       // Hex without #
+  version: number;
+  createdAt: number;   // Timestamp
+}
