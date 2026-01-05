@@ -604,24 +604,6 @@ function App() {
                   Loaded Favicons ({uploadedFavicons.length}{loadingFavicons.length > 0 ? ` + ${loadingFavicons.length} loading` : ''})
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {/* Loading favicons */}
-                  {loadingFavicons.map((loading) => (
-                    <div
-                      key={loading.id}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-                        isDarkMode
-                          ? 'bg-slate-700'
-                          : 'bg-white border border-slate-200'
-                      }`}
-                    >
-                      <div className="w-4 h-4 flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-3 w-3 border-2 border-slate-400 border-t-transparent"></div>
-                      </div>
-                      <span className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
-                        {loading.fileName}
-                      </span>
-                    </div>
-                  ))}
                   {/* Uploaded favicons */}
                   {uploadedFavicons.map((favicon) => {
                     const inputId = `title-input-${favicon.id}`;
@@ -717,6 +699,24 @@ function App() {
                       </div>
                     );
                   })}
+                  {/* Loading favicons */}
+                  {loadingFavicons.map((loading) => (
+                    <div
+                      key={loading.id}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                        isDarkMode
+                          ? 'bg-slate-700'
+                          : 'bg-white border border-slate-200'
+                      }`}
+                    >
+                      <div className="w-4 h-4 flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-3 w-3 border-2 border-slate-400 border-t-transparent"></div>
+                      </div>
+                      <span className={`text-sm ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
+                        {loading.fileName}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
