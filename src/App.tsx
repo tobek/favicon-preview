@@ -150,6 +150,43 @@ function App() {
   // Merge uploaded favicons with dummy tabs
   const allTabs = mergeFavicons(DUMMY_TABS, uploadedFavicons);
 
+  // Handle paste events for images
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      // Skip if pasting into a text input
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      // Check if clipboard contains files
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      const imageFiles: File[] = [];
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            imageFiles.push(file);
+          }
+        }
+      }
+
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+        // Convert to FileList using DataTransfer
+        const dt = new DataTransfer();
+        imageFiles.forEach(file => dt.items.add(file));
+        await handleFileUpload(dt.files);
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [uploadedFavicons]);
+
   // Load shared state from URL on mount
   useEffect(() => {
     const loadSharedState = async () => {
@@ -550,11 +587,12 @@ function App() {
               >
                 Choose Files
               </button>
-              <p className={`mt-2 text-sm transition-colors ${
+              <p className={`mt-2 text-sm transition-colors hidden md:block ${
                 isDarkMode ? 'text-slate-400' : 'text-slate-600'
-              }`}>
-                <span className="hidden md:inline">or drag and drop image files here</span>
-              </p>
+              }`}>or drag and drop image files here</p>
+              <p className={`text-sm transition-colors hidden md:block ${
+                isDarkMode ? 'text-slate-400' : 'text-slate-600'
+              }`}>or use cmd/ctrl+v to paste an image</p>
             </div>
 
             {/* Uploaded Favicons List */}
