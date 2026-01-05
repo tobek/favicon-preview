@@ -8,7 +8,7 @@ export function ChromeLightTab({ favicon, title, isActive = false, isCollapsed =
         flex items-center h-[34px] rounded-t-[8px] flex-shrink-0
         ${isActive
           ? "bg-white"
-          : "bg-[#dee1e6] hover:bg-[#d3d6db]"
+          : "bg-[#d3e3fd] hover:bg-[#e7f0fe]"
         }
         ${isCollapsed ? "w-[46px] justify-center px-0" : "w-[180px] px-3"}
         transition-all cursor-pointer group relative

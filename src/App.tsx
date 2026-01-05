@@ -65,17 +65,6 @@ function darkenColor(hex: string, amount: number = 0.3): string {
   return rgbToHex(rgb.r * (1 - amount), rgb.g * (1 - amount), rgb.b * (1 - amount));
 }
 
-// Generate lighter shade (for bottom bar)
-function lightenColor(hex: string, amount: number = 0.15): string {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
-  return rgbToHex(
-    rgb.r + (255 - rgb.r) * amount,
-    rgb.g + (255 - rgb.g) * amount,
-    rgb.b + (255 - rgb.b) * amount
-  );
-}
-
 // Determine if we should use light or dark text based on background color (currently unused)
 // function shouldUseLightText(hex: string): boolean {
 //   const rgb = hexToRgb(hex);
@@ -86,20 +75,20 @@ function lightenColor(hex: string, amount: number = 0.15): string {
 // }
 
 // Helper function to merge uploaded favicons with dummy tabs using middle-outward strategy
-function mergeFavicons(dummyTabs: typeof DUMMY_TABS, uploadedFavicons: CompressedFavicon[]) {
+function mergeFavicons(dummyTabs: typeof DUMMY_TABS, uploadedFavicons: CompressedFavicon[]): { icon: string; title: string; id?: string }[] {
   const baseCount = dummyTabs.length; // Start with 6 base tabs
   const uploadCount = uploadedFavicons.length;
 
   // If no uploads, just use dummy tabs
   if (uploadCount === 0) {
-    return dummyTabs.map(tab => ({ icon: tab.icon, title: tab.title }));
+    return dummyTabs.map(tab => ({ icon: tab.icon, title: tab.title, id: undefined }));
   }
 
   // Calculate total tabs needed (at least baseCount, more if uploads > baseCount)
   const totalTabs = Math.max(baseCount, uploadCount);
 
   // Create array to hold all tabs
-  const result: { icon: string; title: string }[] = [];
+  const result: { icon: string; title: string; id?: string }[] = [];
 
   // Fill with dummy tabs first
   for (let i = 0; i < totalTabs; i++) {
@@ -124,6 +113,7 @@ function mergeFavicons(dummyTabs: typeof DUMMY_TABS, uploadedFavicons: Compresse
       result[position] = {
         icon: uploadedFavicons[i].dataUrl,
         title: uploadedFavicons[i].title,
+        id: uploadedFavicons[i].id,
       };
     }
   }
@@ -391,7 +381,7 @@ function App() {
   };
 
   // Preview favicon in actual browser tab
-  const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
+const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
     // Find existing favicon link element or create new one
     let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
     if (!link) {
@@ -401,9 +391,16 @@ function App() {
     }
     link.href = dataUrl;
 
-    // Update current browser tab favicon ID
-    if (faviconId) {
-      setCurrentBrowserTabFaviconId(faviconId);
+  // Update current browser tab favicon ID (or clear when previewing dummy tabs)
+  setCurrentBrowserTabFaviconId(faviconId ?? null);
+  };
+
+  // Handle tab selection
+  const handleTabClick = (index: number) => {
+    setActiveTabIndex(index);
+    const tab = allTabs[index];
+    if (tab) {
+      previewFaviconInTab(tab.icon, tab.id);
     }
   };
 
@@ -788,7 +785,7 @@ function App() {
                       title={tab.title}
                       isActive={i === activeTabIndex}
                       isCollapsed={isCollapsed}
-                      onClick={() => setActiveTabIndex(i)}
+                      onClick={() => handleTabClick(i)}
                     />
                   ))}
                 </div>
@@ -803,8 +800,8 @@ function App() {
               }`}>
                 Chrome - Light Mode
               </h2>
-              <div className="bg-[#dee1e6] rounded-lg overflow-hidden">
-                <div className="flex items-end gap-[2px] px-2 pt-2 bg-[#dee1e6] min-w-max">
+              <div className="bg-[#d3e3fd] rounded-lg overflow-hidden">
+                <div className="flex items-end gap-[2px] px-2 pt-2 bg-[#d3e3fd] min-w-max">
                   {allTabs.map((tab, i) => (
                     <ChromeLightTab
                       key={i}
@@ -812,7 +809,7 @@ function App() {
                       title={tab.title}
                       isActive={i === activeTabIndex}
                       isCollapsed={isCollapsed}
-                      onClick={() => setActiveTabIndex(i)}
+                      onClick={() => handleTabClick(i)}
                     />
                   ))}
                 </div>
@@ -858,13 +855,13 @@ function App() {
                       isActive={i === activeTabIndex}
                       isCollapsed={isCollapsed}
                       bgColor={chromeColorTheme}
-                      onClick={() => setActiveTabIndex(i)}
+                      onClick={() => handleTabClick(i)}
                     />
                   ))}
                 </div>
                 <div
                   className="h-3"
-                  style={{ backgroundColor: lightenColor(chromeColorTheme, 0.15) }}
+                  style={{ backgroundColor: chromeColorTheme }}
                 ></div>
               </div>
             </div>
@@ -885,7 +882,7 @@ function App() {
                       title={tab.title}
                       isActive={i === activeTabIndex}
                       isCollapsed={isCollapsed}
-                      onClick={() => setActiveTabIndex(i)}
+                      onClick={() => handleTabClick(i)}
                     />
                   ))}
                 </div>
@@ -908,7 +905,7 @@ function App() {
                       title={tab.title}
                       isActive={i === activeTabIndex}
                       isCollapsed={isCollapsed}
-                      onClick={() => setActiveTabIndex(i)}
+                      onClick={() => handleTabClick(i)}
                     />
                   ))}
                 </div>
