@@ -17,15 +17,15 @@ export function ChromeDarkTab({ favicon, title, isActive = false, isCollapsed = 
       <img
         src={favicon}
         alt={title}
-        className={`w-4 h-4 flex-shrink-0 ${!isCollapsed && 'mr-2'}`}
+        className={`w-4 h-4 flex-shrink-0 object-contain ${!isCollapsed && 'mr-2'}`}
       />
       {!isCollapsed && (
         <>
           <span
             className="flex-1 text-[#e8eaed] text-[12px] whitespace-nowrap select-none overflow-hidden"
             style={{
-              maskImage: 'linear-gradient(to right, black 60%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to right, black 60%, transparent 100%)'
+              maskImage: 'linear-gradient(to right, black 75%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to right, black 75%, transparent 100%)'
             }}
           >
             {title}

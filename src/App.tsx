@@ -13,20 +13,13 @@ import { ShareButton } from './components/ShareButton';
 import { parseShareUrl, validateSharedState } from './utils/shareUrl';
 import { loadShortlink } from './utils/shortlink';
 
-// Example favicons - using public URLs for now (currently unused but kept for future reference)
-// const EXAMPLE_FAVICONS = [
-//   { icon: '/favicon-examples/favicon.ico', title: 'Example Site 1' },
-//   { icon: '/favicon-examples/favicon.ico.1', title: 'Example Site 2' },
-//   { icon: '/favicon-examples/wikipedia.ico', title: 'Wikipedia' },
-// ];
-
 // Dummy favicons for context
 const DUMMY_TABS = [
   { icon: 'https://www.google.com/favicon.ico', title: 'Google' },
-  { icon: 'https://github.com/favicon.ico', title: 'GitHub' },
-  { icon: 'https://www.youtube.com/favicon.ico', title: 'YouTube' },
-  { icon: 'https://www.reddit.com/favicon.ico', title: 'Reddit' },
+  { icon: 'https://en.wikipedia.org/static/favicon/wikipedia.ico', title: 'Wikipedia' },
+  { icon: 'https://www.youtube.com/s/desktop/73a518d0/img/favicon_32x32.png', title: 'YouTube' },
   { icon: 'https://stackoverflow.com/favicon.ico', title: 'Stack Overflow' },
+  { icon: 'https://slatestarcodex.com/favicon.ico', title: 'Slate Star Codex' },
 ];
 
 // Detect initial dark mode preference
@@ -228,16 +221,26 @@ function App() {
     loadSharedState();
   }, []);
 
+  // Helper to check if file is a valid image format
+  const isValidImageFile = (file: File): boolean => {
+    // Check MIME type - accept any image
+    if (file.type.startsWith('image/')) {
+      return true;
+    }
+    // Fallback: check file extension for common image formats
+    return /\.(png|ico|svg|webp|jpg|jpeg|gif|bmp|tiff|tif)$/i.test(file.name);
+  };
+
   // Handle file upload
   const handleFileUpload = async (files: FileList | null) => {
     if (!files) return;
 
     // Add all files to loading state immediately
     const loadingItems = Array.from(files)
-      .filter(file => file.type.match(/^image\/(png|x-icon|svg\+xml|webp)$/))
+      .filter(isValidImageFile)
       .map((file, i) => ({
         id: `loading-${Date.now()}-${i}`,
-        fileName: file.name.replace(/\.(png|ico|svg|webp)$/i, ''),
+        fileName: file.name.replace(/\.(png|ico|svg|webp|jpg|jpeg|gif|bmp|tiff|tif)$/i, ''),
       }));
 
     setLoadingFavicons(prev => [...prev, ...loadingItems]);
@@ -246,8 +249,8 @@ function App() {
 
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      if (!file.type.match(/^image\/(png|x-icon|svg\+xml|webp)$/)) {
-        continue; // Skip non-favicon files
+      if (!isValidImageFile(file)) {
+        continue; // Skip non-image files
       }
 
       const loadingId = loadingItems[newFavicons.length]?.id;
@@ -265,7 +268,7 @@ function App() {
         id: `${Date.now()}-${i}`,
         dataUrl,
         compressedDataUrl,
-        title: file.name.replace(/\.(png|ico|svg|webp)$/i, ''),
+        title: file.name.replace(/\.(png|ico|svg|webp|jpg|jpeg|gif|bmp|tiff|tif)$/i, ''),
       });
 
       // Remove from loading state after compression
@@ -470,7 +473,7 @@ function App() {
               <polyline points="17 8 12 3 7 8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <line x1="12" y1="3" x2="12" y2="15" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
-            <p className="text-2xl font-semibold">Drop favicon files anywhere</p>
+            <p className="text-2xl font-semibold">Drop image files anywhere</p>
           </div>
         </div>
       )}
@@ -532,7 +535,7 @@ function App() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".ico,.png,.svg,.webp,image/x-icon,image/png,image/svg+xml,image/webp"
+                accept="image/*"
                 multiple
                 onChange={(e) => handleFileUpload(e.target.files)}
                 className="hidden"
@@ -550,7 +553,7 @@ function App() {
               <p className={`mt-2 text-sm transition-colors ${
                 isDarkMode ? 'text-slate-400' : 'text-slate-600'
               }`}>
-                <span className="hidden md:inline">or drag and drop favicon files here</span>
+                <span className="hidden md:inline">or drag and drop image files here</span>
               </p>
             </div>
 
@@ -593,18 +596,24 @@ function App() {
                             : 'bg-white border border-slate-200'
                         }`}
                       >
-                        <img src={favicon.dataUrl} alt="" className="w-4 h-4" />
+                        <img src={favicon.dataUrl} alt="" className="w-4 h-4 object-contain" />
                         <div className="flex items-center gap-1">
-                          <input
-                            id={inputId}
-                            type="text"
-                            value={favicon.title}
-                            onChange={(e) => updateFaviconTitle(favicon.id, e.target.value)}
-                            className={`text-sm px-1 py-0.5 rounded border-none outline-none bg-transparent transition-colors ${
+                          <div className="relative inline-block">
+                            <span className={`invisible whitespace-pre text-sm px-1 py-0.5 ${
                               isDarkMode ? 'text-slate-200' : 'text-slate-900'
-                            }`}
-                            style={{ width: `${Math.max(favicon.title.length + 1, 8)}ch` }}
-                          />
+                            }`}>
+                              {favicon.title || ' '}
+                            </span>
+                            <input
+                              id={inputId}
+                              type="text"
+                              value={favicon.title}
+                              onChange={(e) => updateFaviconTitle(favicon.id, e.target.value)}
+                              className={`absolute left-0 top-0 w-full text-sm px-1 py-0.5 rounded border-none outline-none bg-transparent transition-colors ${
+                                isDarkMode ? 'text-slate-200' : 'text-slate-900'
+                              }`}
+                            />
+                          </div>
                           <Tooltip content="Edit title">
                             <svg
                               width="12"
@@ -829,8 +838,8 @@ function App() {
               }`}>
                 Safari - Dark Mode
               </h2>
-              <div className="bg-[#1c1c1e] p-3 rounded-lg overflow-hidden">
-                <div className="flex items-center gap-1.5 min-w-max">
+              <div className="bg-[#1c1c1e] p-3 rounded-lg overflow-hidden w-[1280px] max-w-[calc(100vw-64px)]">
+                <div className="flex items-center gap-1.5 w-full">
                   {allTabs.map((tab, i) => (
                     <SafariTahoeDarkTab
                       key={i}
@@ -852,8 +861,8 @@ function App() {
               }`}>
                 Safari - Light Mode
               </h2>
-              <div className="bg-[#e8e8ed] p-3 rounded-lg overflow-hidden">
-                <div className="flex items-center gap-1.5 min-w-max">
+              <div className="bg-[#e8e8ed] p-3 rounded-lg overflow-hidden w-[1280px] max-w-[calc(100vw-64px)]">
+                <div className="flex items-center gap-1.5 w-full">
                   {allTabs.map((tab, i) => (
                     <SafariTahoeLightTab
                       key={i}

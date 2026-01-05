@@ -5,29 +5,23 @@ export function SafariTahoeLightTab({ favicon, title, isActive = false, isCollap
     <div
       onClick={onClick}
       className={`
-        flex items-center h-[28px] rounded-[6px] flex-shrink-0
+        flex items-center h-[28px] rounded-[6px]
         ${isActive
           ? "bg-white/90 shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.05)]"
           : "bg-[#f5f5f7]/70 hover:bg-white/60"
         }
-        ${isCollapsed ? "w-[36px] justify-center px-0" : "w-[160px] px-2.5"}
+        ${isCollapsed ? "w-[36px] justify-center px-0 flex-shrink-0" : "flex-1 min-w-0 px-2.5"}
         transition-all cursor-pointer backdrop-blur-sm group
       `}
     >
       <img
         src={favicon}
         alt={title}
-        className={`w-4 h-4 flex-shrink-0 rounded-[2px] ${!isCollapsed && 'mr-2'}`}
+        className={`w-4 h-4 flex-shrink-0 object-contain rounded-[2px] ${!isCollapsed && 'mr-2'}`}
       />
       {!isCollapsed && (
         <>
-          <span
-            className="flex-1 text-[#1d1d1f] text-[11px] whitespace-nowrap select-none font-medium overflow-hidden"
-            style={{
-              maskImage: 'linear-gradient(to right, black 60%, transparent 100%)',
-              WebkitMaskImage: 'linear-gradient(to right, black 60%, transparent 100%)'
-            }}
-          >
+          <span className="flex-1 text-[#1d1d1f] text-[12px] whitespace-nowrap select-none font-medium overflow-hidden text-ellipsis">
             {title}
           </span>
           <button
