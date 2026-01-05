@@ -150,6 +150,7 @@ function App() {
   const [currentBrowserTabFaviconId, setCurrentBrowserTabFaviconId] = useState<string | null>(null);
   const [loadingFavicons, setLoadingFavicons] = useState<Array<{ id: string; fileName: string }>>([]);
   const [faviconsModified, setFaviconsModified] = useState(false);
+  const [isSharedPreview, setIsSharedPreview] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
 
@@ -207,6 +208,9 @@ function App() {
 
         // Set chrome color theme
         setChromeColorTheme(`#${sharedState.color}`);
+
+        // Mark as shared preview
+        setIsSharedPreview(true);
 
         // Preview first favicon in browser tab
         if (availableFavicons.length > 0) {
@@ -510,7 +514,7 @@ function App() {
           }`}>
             Favicon Preview
           </h1>
-          <p className={`text-lg transition-colors ${
+          <p className={`text-md md:text-lg transition-colors -mb-3 md:mb-0 ${
             isDarkMode ? 'text-slate-400' : 'text-slate-600'
           }`}>
             Preview and share how your favicons will look in browser tab mockups
@@ -546,7 +550,7 @@ function App() {
               <p className={`mt-2 text-sm transition-colors ${
                 isDarkMode ? 'text-slate-400' : 'text-slate-600'
               }`}>
-                or drag and drop favicon files here
+                <span className="hidden md:inline">or drag and drop favicon files here</span>
               </p>
             </div>
 
@@ -673,29 +677,32 @@ function App() {
         </div>
 
         {/* Share Button - Outside upload area */}
-        <div className="flex justify-center">
-          {uploadedFavicons.length === 0 ? (
-            <Tooltip content="Upload favicons to share them">
-              <div>
-                <ShareButton
-                  uploadedFavicons={uploadedFavicons}
-                  chromeColorTheme={chromeColorTheme}
-                  isDarkMode={isDarkMode}
-                  faviconsModified={faviconsModified}
-                  onShareSuccess={() => setFaviconsModified(false)}
-                />
-              </div>
-            </Tooltip>
-          ) : (
-            <ShareButton
-              uploadedFavicons={uploadedFavicons}
-              chromeColorTheme={chromeColorTheme}
-              isDarkMode={isDarkMode}
-              faviconsModified={faviconsModified}
-              onShareSuccess={() => setFaviconsModified(false)}
-            />
-          )}
-        </div>
+        {/* Hide if this is a shared preview and nothing has been modified */}
+        {!(isSharedPreview && !faviconsModified) && (
+          <div className="flex justify-center">
+            {uploadedFavicons.length === 0 ? (
+              <Tooltip content="Upload favicons to share them">
+                <div>
+                  <ShareButton
+                    uploadedFavicons={uploadedFavicons}
+                    chromeColorTheme={chromeColorTheme}
+                    isDarkMode={isDarkMode}
+                    faviconsModified={faviconsModified}
+                    onShareSuccess={() => setFaviconsModified(false)}
+                  />
+                </div>
+              </Tooltip>
+            ) : (
+              <ShareButton
+                uploadedFavicons={uploadedFavicons}
+                chromeColorTheme={chromeColorTheme}
+                isDarkMode={isDarkMode}
+                faviconsModified={faviconsModified}
+                onShareSuccess={() => setFaviconsModified(false)}
+              />
+            )}
+          </div>
+        )}
 
         {/* Preview Rows - Single Scrollable Container */}
         <div className="relative">

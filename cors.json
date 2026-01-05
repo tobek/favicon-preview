@@ -1,6 +1,6 @@
 [
   {
-    "origin": ["http://localhost:5173", "https://favicon-preview.web.app", "https://favicon-preview.firebaseapp.com"],
+    "origin": ["http://localhost:5173", "https://favicon-preview.web.app", "https://favicon-preview.firebaseapp.com", "https://faviconpreview.fyi"],
     "method": ["GET", "HEAD"],
     "maxAgeSeconds": 3600
   }

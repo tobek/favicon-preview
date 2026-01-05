@@ -278,9 +278,10 @@ This document tracks detailed version history, planned features, research findin
 ## Planned Features
 
 ### v1.x+ (Future)
-1. Support dragging in .ico files (currently nothing happens)
-2. Cleanup script to remove all uploaded favicons and shortlinks in Firebase that are older than 6 months (ensure that loading previews with missing favicons/shortlinks fails gracefully)
-3. Improve visual fidelity based on research
+- Update default favicons
+- Support dragging in .ico files (currently nothing happens)
+- Cleanup script to remove all uploaded favicons and shortlinks in Firebase that are older than 6 months (ensure that loading previews with missing favicons/shortlinks fails gracefully)
+- Improve visual fidelity based on research
   - Safari tabs fill available space?
   - Check Safari too-long title truncation style
 

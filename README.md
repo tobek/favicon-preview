@@ -72,7 +72,7 @@ Firebase configuration is stored in `src/config/firebase.config.ts` and committe
 **CORS Configuration (Required):**
 ```bash
 # Set CORS to allow localhost and production domains
-gsutil cors set cors.json gs://your-bucket.firebasestorage.app
+gsutil cors set cors.json gs://favicon-preview.firebasestorage.app
 ```
 
 The `cors.json` file is included in the repo and allows image fetching from localhost and Firebase hosting domains.
