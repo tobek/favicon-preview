@@ -757,7 +757,10 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                     chromeColorTheme={chromeColorTheme}
                     isDarkMode={isDarkMode}
                     faviconsModified={faviconsModified}
-                    onShareSuccess={() => setFaviconsModified(false)}
+                    onShareSuccess={() => {
+                      setFaviconsModified(false);
+                      setIsSharedPreview(false);
+                    }}
                   />
                 </div>
               </Tooltip>
@@ -767,7 +770,10 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                 chromeColorTheme={chromeColorTheme}
                 isDarkMode={isDarkMode}
                 faviconsModified={faviconsModified}
-                onShareSuccess={() => setFaviconsModified(false)}
+                onShareSuccess={() => {
+                  setFaviconsModified(false);
+                  setIsSharedPreview(false);
+                }}
               />
             )}
           </div>
