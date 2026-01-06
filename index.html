@@ -35,6 +35,24 @@
   <body style="margin: 0; min-height: 100vh;">
     <script>
       function getInitialDarkMode() {
+        // Check for stored preference (valid for 12 hours)
+        try {
+          const stored = localStorage.getItem('theme-preference');
+          if (stored) {
+            const { theme, timestamp } = JSON.parse(stored);
+            const twelveHoursMs = 12 * 60 * 60 * 1000;
+            const isExpired = Date.now() - timestamp > twelveHoursMs;
+
+            if (!isExpired) {
+              return theme === 'dark';
+            }
+            // Clear expired preference
+            localStorage.removeItem('theme-preference');
+          }
+        } catch (e) {
+          // Ignore localStorage errors
+        }
+
         // Try to detect from browser
         if (window.matchMedia) {
           if (window.matchMedia('(prefers-color-scheme: dark)').matches) {

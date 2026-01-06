@@ -166,7 +166,7 @@ function App() {
       if (faviconLink) {
         faviconLink.href = randomFavicon;
       }
-    }, 1500);
+    }, 1000);
 
     return () => clearInterval(intervalId);
   }, [isCyclingFavicons]);
@@ -429,12 +429,39 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
     }
   }, []);
 
+  // Sync body class with dark mode state
+  useEffect(() => {
+    if (isDarkMode) {
+      document.body.classList.remove('light');
+      document.body.classList.add('dark');
+    } else {
+      document.body.classList.remove('dark');
+      document.body.classList.add('light');
+    }
+  }, [isDarkMode]);
+
   // Handle tab selection
   const handleTabClick = (index: number) => {
     setActiveTabIndex(index);
     const tab = allTabs[index];
     if (tab) {
       previewFaviconInTab(tab.icon, tab.id);
+    }
+  };
+
+  // Handle theme toggle and save preference
+  const handleThemeToggle = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+
+    // Save preference to localStorage with timestamp
+    try {
+      localStorage.setItem('theme-preference', JSON.stringify({
+        theme: newTheme ? 'dark' : 'light',
+        timestamp: Date.now()
+      }));
+    } catch (e) {
+      // Ignore localStorage errors
     }
   };
 
@@ -562,7 +589,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
       <div className="max-w-7xl mx-auto space-y-8 relative">
         {/* Dark/Light Mode Toggle - Top Right */}
         <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
+          onClick={handleThemeToggle}
           className={`absolute top-0 right-0 p-2 rounded-lg transition-colors hidden md:block cursor-pointer ${
             isDarkMode
               ? 'bg-gray-700 hover:bg-gray-600'
@@ -856,7 +883,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
         {/* Preview Rows - Single Scrollable Container */}
         <div className="relative">
           {/* Collapse Toggle - Positioned absolutely at right, aligned with first heading */}
-          <div className="absolute right-0 top-0 z-10 opacity-75 hover:opacity-100 transition-opacity">
+          <div className="absolute right-0 top-0 z-10 opacity-80 hover:opacity-100 transition-opacity">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
