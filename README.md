@@ -5,18 +5,19 @@ A static web app for previewing favicons in realistic browser tab contexts. Uplo
 ## Features
 
 **Core Functionality:**
-- Drag-drop and file picker favicon upload (.ico, .png, .svg, .webp)
-- 5 browser contexts: Chrome Dark/Light/Color, Safari Tahoe Dark/Light
+- Drag-drop and file picker favicon upload (.ico, .png, .svg, .webp) or add image by clipboard paste
+- Preview in 5 browser contexts: Chrome Dark/Light/Color, Safari Tahoe Dark/Light
+- Share previews
 - Expanded/collapsed tab states with active/inactive styling
-- Editable favicon titles with fade-out truncation
-- Tab click activation (synchronized across all rows)
-- Horizontal scroll for overflow tabs
-- Browser tab favicon preview (eye icon + automatic on upload)
+- Browser tab favicon preview (eye icon + automatic on upload/preview)
+- Editable favicon titles with truncation
 
-**Customization:**
+**Customization/UX:**
 - Dark/light page mode toggle (auto-detected from system preferences)
 - Chrome color theme picker with auto-generated shades
 - Dynamic tab count (starts with 5 example tabs, grows with uploads)
+- Tab click activation
+- Horizontal scroll for overflow tabs
 
 **Sharing & Export:**
 - Shareable shortlinks (e.g., `/?s=abc1234`) with uploaded favicons
@@ -112,11 +113,9 @@ Client-side only, no backend. File processing happens entirely in the browser us
 Each row represents a browser context (e.g., "Chrome - Dark"). Within each row, tabs display a mix of example favicons (Google, GitHub, YouTube, etc.) and uploaded favicons. Uploaded favicons replace example ones from the middle outwards as users upload more.
 
 ### File Handling
-- Supported formats: .ico, .png, .svg, .webp
+- Supported formats: all images and .ico (multi-resolution .ico files handled by browser's native support)
 - FileReader API converts files to data URLs
-- Client-side compression resizes images to max 256×256 (sufficient for favicons)
-- Compressed images stored alongside originals (typically <50KB)
-- Multi-resolution .ico files handled by browser's native support
+- Client-side compression resizes images to max 256×256 PNG (sufficient for favicons)
 
 ### Shareable Links
 
@@ -142,9 +141,8 @@ Each row represents a browser context (e.g., "Chrome - Dark"). Within each row, 
 ## Browser Support
 
 Tab mockups represent:
+
 - **Chrome**: 3 themes (Dark, Light, Color with customizable palette)
 - **Safari Tahoe**: 2 themes (Dark, Light) with floating rounded tab design
-- **Firefox**: Deferred (similar enough to Chrome for v1)
-- **Edge**: Deferred (uses Chromium, visually similar to Chrome)
 
-Tab mockups capture browser "feel" rather than pixel-perfect recreation.
+Tab mockups capture browser feel but are not pixel-perfect recreations.
