@@ -116,6 +116,7 @@ function App() {
   const [loadingFavicons, setLoadingFavicons] = useState<Array<{ id: string; fileName: string }>>([]);
   const [faviconsModified, setFaviconsModified] = useState(false);
   const [isSharedPreview, setIsSharedPreview] = useState(false);
+  const [isUploadSectionExpanded, setIsUploadSectionExpanded] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
 
@@ -565,12 +566,15 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
           </div>
         ) : (
           /* Favicon Upload Section */
-          <div className={`rounded-lg border-2 border-dashed p-6 transition-colors ${
+          <div className={`rounded-lg border-2 border-dashed transition-colors ${
             isDarkMode
               ? 'border-gray-600 bg-gray-800/50'
               : 'border-slate-300 bg-slate-50'
           }`}>
-            <div className="space-y-4">
+            <div className={`transition-all overflow-hidden ${
+              uploadedFavicons.length >= 3 && !isUploadSectionExpanded ? 'max-h-[180px] md:max-h-none' : 'max-h-none'
+            }`}>
+              <div className="p-6 space-y-4">
               <div className="text-center">
                 <input
                   ref={fileInputRef}
@@ -744,13 +748,27 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                   </div>
                 </div>
               )}
+              </div>
             </div>
+            {/* Expand/Collapse Button - Mobile only, when 3+ favicons */}
+            {uploadedFavicons.length >= 3 && (
+              <button
+                onClick={() => setIsUploadSectionExpanded(!isUploadSectionExpanded)}
+                className={`w-full py-2 text-sm font-medium transition-colors border-t md:hidden ${
+                  isDarkMode
+                    ? 'border-gray-600 text-gray-400 hover:text-gray-300 hover:bg-gray-700/50'
+                    : 'border-slate-300 text-slate-600 hover:text-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                {isUploadSectionExpanded ? 'Show fewer' : 'Show all'}
+              </button>
+            )}
           </div>
         )}
 
         {/* Share Button - Outside upload area */}
-        {/* Hide if this is a shared preview and nothing has been modified */}
-        {!(isSharedPreview && !faviconsModified) && (
+        {/* Hide if this is a shared preview and nothing has been modified, or if isLoadingShared */}
+        {!(isSharedPreview && !faviconsModified) && !isLoadingShared && (
           <div className="flex justify-center">
             {uploadedFavicons.length === 0 ? (
               <Tooltip content="Upload favicons to share them">
