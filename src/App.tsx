@@ -945,6 +945,40 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
           </div>
         </div>
         </div>
+
+        {/* Footer */}
+        <div className="text-center mt-16 space-y-1">
+          <p className={`text-sm transition-colors ${
+            isDarkMode ? 'text-gray-500' : 'text-slate-400'
+          }`}>
+            Made by{' '}
+            <a
+              href="https://tobyfox.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`hover:underline ${
+                isDarkMode ? 'text-gray-400' : 'text-slate-500'
+              }`}
+            >
+              Toby Fox
+            </a>
+          </p>
+          <p className={`text-sm transition-colors ${
+            isDarkMode ? 'text-gray-500' : 'text-slate-400'
+          }`}>
+            Feedback?{' '}
+            <a
+              href="https://github.com/tobek/favicon-preview"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`hover:underline ${
+                isDarkMode ? 'text-gray-400' : 'text-slate-500'
+              }`}
+            >
+              Open an issue on GitHub
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );
