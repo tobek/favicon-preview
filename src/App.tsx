@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ChromeDarkTab,
   ChromeLightTab,
@@ -129,7 +129,7 @@ function App() {
   // Merge uploaded favicons with dummy tabs
   const allTabs = mergeFavicons(DUMMY_TABS, uploadedFavicons);
 
-  // Cycle through favicons in browser tab every 1.5 seconds
+  // Cycle through favicons in browser tab every 1 second
   useEffect(() => {
     if (!isCyclingFavicons) return;
 
@@ -159,7 +159,7 @@ function App() {
     }
     link.href = initialFavicon;
 
-    // Cycle every 1.5 seconds
+    // Cycle every 1 second
     const intervalId = setInterval(() => {
       const randomFavicon = getRandomFavicon();
       const faviconLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
@@ -170,43 +170,6 @@ function App() {
 
     return () => clearInterval(intervalId);
   }, [isCyclingFavicons]);
-
-  // Handle paste events for images
-  useEffect(() => {
-    const handlePaste = async (e: ClipboardEvent) => {
-      // Skip if pasting into a text input
-      const target = e.target as HTMLElement;
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-        return;
-      }
-
-      // Check if clipboard contains files
-      const items = e.clipboardData?.items;
-      if (!items) return;
-
-      const imageFiles: File[] = [];
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.type.startsWith('image/')) {
-          const file = item.getAsFile();
-          if (file) {
-            imageFiles.push(file);
-          }
-        }
-      }
-
-      if (imageFiles.length > 0) {
-        e.preventDefault();
-        // Convert to FileList using DataTransfer
-        const dt = new DataTransfer();
-        imageFiles.forEach(file => dt.items.add(file));
-        await handleFileUpload(dt.files);
-      }
-    };
-
-    document.addEventListener('paste', handlePaste);
-    return () => document.removeEventListener('paste', handlePaste);
-  }, [uploadedFavicons]);
 
   // Load shared state from URL on mount
   useEffect(() => {
@@ -258,6 +221,9 @@ function App() {
           }));
 
         setUploadedFavicons(availableFavicons);
+        if (availableFavicons.length > 0) {
+          setActiveTabIndex(0);
+        }
 
         // Set chrome color theme
         setChromeColorTheme(`#${sharedState.color}`);
@@ -279,6 +245,7 @@ function App() {
     };
 
     loadSharedState();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Helper to check if file is a valid image format
@@ -291,8 +258,28 @@ function App() {
     return /\.(png|ico|svg|webp|jpg|jpeg|gif|bmp|tiff|tif)$/i.test(file.name);
   };
 
+  // Preview favicon in actual browser tab
+  const previewFaviconInTab = useCallback((dataUrl: string, faviconId?: string) => {
+    // Stop cycling favicons when user previews their own
+    if (isCyclingFavicons) {
+      setIsCyclingFavicons(false);
+    }
+
+    // Find existing favicon link element or create new one
+    let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = dataUrl;
+
+    // Update current browser tab favicon ID (or clear when previewing dummy tabs)
+    setCurrentBrowserTabFaviconId(faviconId ?? null);
+  }, [isCyclingFavicons]);
+
   // Handle file upload
-  const handleFileUpload = async (files: FileList | null) => {
+  const handleFileUpload = useCallback(async (files: FileList | null) => {
     if (!files) return;
 
     // Add all files to loading state immediately
@@ -338,22 +325,59 @@ function App() {
     }
 
     if (newFavicons.length > 0) {
-      const updatedFavicons = [...uploadedFavicons, ...newFavicons];
-      setUploadedFavicons(updatedFavicons);
-      setFaviconsModified(true);
-
-      // Calculate which tab position the first new favicon will occupy
-      // Since favicons now load from the start, position is just the current count
-      const position = uploadedFavicons.length;
-
-      // Set this tab as active
-      setActiveTabIndex(position);
-
-      // Automatically preview the last uploaded favicon in browser tab
       const lastFavicon = newFavicons[newFavicons.length - 1];
-      previewFaviconInTab(lastFavicon.dataUrl, lastFavicon.id);
+
+      setUploadedFavicons(prev => {
+        const firstNewIndex = prev.length;
+        const lastIndex = firstNewIndex + newFavicons.length - 1;
+        const updatedFavicons = [...prev, ...newFavicons];
+
+        setActiveTabIndex(lastIndex);
+        previewFaviconInTab(lastFavicon.dataUrl, lastFavicon.id);
+
+        return updatedFavicons;
+      });
+
+      setFaviconsModified(true);
     }
-  };
+  }, [previewFaviconInTab]);
+
+  // Handle paste events for images
+  useEffect(() => {
+    const handlePaste = async (e: ClipboardEvent) => {
+      // Skip if pasting into a text input
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        return;
+      }
+
+      // Check if clipboard contains files
+      const items = e.clipboardData?.items;
+      if (!items) return;
+
+      const imageFiles: File[] = [];
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.type.startsWith('image/')) {
+          const file = item.getAsFile();
+          if (file) {
+            imageFiles.push(file);
+          }
+        }
+      }
+
+      if (imageFiles.length > 0) {
+        e.preventDefault();
+        // Convert to FileList using DataTransfer
+        const dt = new DataTransfer();
+        imageFiles.forEach(file => dt.items.add(file));
+        await handleFileUpload(dt.files);
+      }
+    };
+
+    document.addEventListener('paste', handlePaste);
+    return () => document.removeEventListener('paste', handlePaste);
+  }, [handleFileUpload]);
 
   // Handle drag and drop - full page
   const handleDragEnter = (e: React.DragEvent) => {
@@ -401,26 +425,6 @@ function App() {
     setFaviconsModified(true);
   };
 
-  // Preview favicon in actual browser tab
-const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
-    // Stop cycling favicons when user previews their own
-    if (isCyclingFavicons) {
-      setIsCyclingFavicons(false);
-    }
-
-    // Find existing favicon link element or create new one
-    let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = 'icon';
-      document.head.appendChild(link);
-    }
-    link.href = dataUrl;
-
-  // Update current browser tab favicon ID (or clear when previewing dummy tabs)
-  setCurrentBrowserTabFaviconId(faviconId ?? null);
-  };
-
   // Hide initial loading content when React mounts
   useEffect(() => {
     const initialContent = document.getElementById('initial-content');
@@ -460,7 +464,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
         theme: newTheme ? 'dark' : 'light',
         timestamp: Date.now()
       }));
-    } catch (e) {
+    } catch {
       // Ignore localStorage errors
     }
   };
