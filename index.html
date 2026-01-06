@@ -6,8 +6,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Favicon Preview</title>
   </head>
-  <body>
+  <body style="margin: 0; min-height: 100vh; background: linear-gradient(to bottom right, #101828, #1e2939);">
+    <div id="initial-content" style="width: 100%; position: absolute; z-index: -1">
+      <!-- Loading Spinner -->
+      <div id="loading-indicator" style="display: flex; justify-content: center; align-items: center; padding: 3rem 0;">
+        <div style="width: 40px; height: 40px; border: 3px solid #374151; border-top-color: #9ca3af; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      </div>
+    </div>
+
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <style>
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </body>
 </html>

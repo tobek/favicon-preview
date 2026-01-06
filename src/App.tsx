@@ -27,6 +27,12 @@ function getInitialCollapsedState(): boolean {
   return window.innerWidth < 500;
 }
 
+// Detect if URL has share parameters
+function hasShareParams(): boolean {
+  const params = new URLSearchParams(window.location.search);
+  return params.has('s') || params.has('share');
+}
+
 // Color utility functions
 function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -117,7 +123,7 @@ function App() {
   const [uploadedFavicons, setUploadedFavicons] = useState<CompressedFavicon[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
-  const [isLoadingShared, setIsLoadingShared] = useState(false);
+  const [isLoadingShared, setIsLoadingShared] = useState(hasShareParams);
   const [currentBrowserTabFaviconId, setCurrentBrowserTabFaviconId] = useState<string | null>(null);
   const [loadingFavicons, setLoadingFavicons] = useState<Array<{ id: string; fileName: string }>>([]);
   const [faviconsModified, setFaviconsModified] = useState(false);
@@ -178,15 +184,17 @@ function App() {
         sharedState = await loadShortlink(shortId);
         if (!sharedState) {
           setLoadError('This share link is invalid or has expired.');
+          setIsLoadingShared(false);
           return;
         }
       } else {
         // Priority 2: Check for long URL (?share=) - fallback only
         sharedState = parseShareUrl();
-        if (!sharedState) return;
+        if (!sharedState) {
+          setIsLoadingShared(false);
+          return;
+        }
       }
-
-      setIsLoadingShared(true);
 
       try {
         // Validate image URLs
@@ -382,6 +390,14 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
   // Update current browser tab favicon ID (or clear when previewing dummy tabs)
   setCurrentBrowserTabFaviconId(faviconId ?? null);
   };
+
+  // Hide initial loading content when React mounts
+  useEffect(() => {
+    const initialContent = document.getElementById('initial-content');
+    if (initialContent) {
+      initialContent.style.display = 'none';
+    }
+  }, []);
 
   // Handle tab selection
   const handleTabClick = (index: number) => {
