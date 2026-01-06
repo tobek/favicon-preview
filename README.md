@@ -123,9 +123,9 @@ Each row represents a browser context (e.g., "Chrome - Dark"). Within each row, 
 1. User clicks Share button
 2. Favicons are compressed client-side (max 256×256)
 3. Images uploaded to Firebase Storage with retry logic
-4. State encoded as minified base64 JSON: `{f:[{u:url,t:title},...],c:color,v:version}`
-5. URL generated: `https://example.com?share=eyJmIjpbeyJ1Ijoi...`
-6. Recipients load shared URL, app fetches images and restores state
+4. Shortlink created in Firestore with favicon URLs and theme color
+5. URL generated: `https://faviconpreview.fyi?s=abc1234`
+6. Recipients load shared URL, app fetches shortlink data and restores state
 
 **Security:**
 - Firebase Storage with upload-only rules (clients cannot delete)

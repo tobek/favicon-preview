@@ -10,7 +10,6 @@ import type { CompressedFavicon } from './types.ts';
 import { Tooltip } from './components/Tooltip';
 import { compressImage } from './utils/imageCompression';
 import { ShareButton } from './components/ShareButton';
-import { parseShareUrl, validateSharedState } from './utils/shareUrl';
 import { loadShortlink } from './utils/shortlink';
 
 // Dummy favicons for context
@@ -35,7 +34,7 @@ function getInitialCollapsedState(): boolean {
 // Detect if URL has share parameters
 function hasShareParams(): boolean {
   const params = new URLSearchParams(window.location.search);
-  return params.has('s') || params.has('share');
+  return params.has('s');
 }
 
 // Color utility functions
@@ -175,30 +174,41 @@ function App() {
   useEffect(() => {
     const loadSharedState = async () => {
       const params = new URLSearchParams(window.location.search);
-
-      // Priority 1: Check for shortlink (?s=)
       const shortId = params.get('s');
-      let sharedState = null;
 
-      if (shortId) {
-        sharedState = await loadShortlink(shortId);
-        if (!sharedState) {
-          setLoadError('This share link is invalid or has expired.');
-          setIsLoadingShared(false);
-          return;
-        }
-      } else {
-        // Priority 2: Check for long URL (?share=) - fallback only
-        sharedState = parseShareUrl();
-        if (!sharedState) {
-          setIsLoadingShared(false);
-          return;
-        }
+      if (!shortId) {
+        setIsLoadingShared(false);
+        return;
+      }
+
+      const sharedState = await loadShortlink(shortId);
+      if (!sharedState) {
+        setLoadError('This share link is invalid or has expired.');
+        setIsLoadingShared(false);
+        return;
       }
 
       try {
         // Validate image URLs
-        const validationResults = await validateSharedState(sharedState);
+        const validationResults = await Promise.all(
+          sharedState.favicons.map(async (favicon) => {
+            try {
+              const response = await fetch(favicon.url, { method: 'HEAD' });
+              return {
+                url: favicon.url,
+                title: favicon.title,
+                isValid: response.ok,
+              };
+            } catch {
+              return {
+                url: favicon.url,
+                title: favicon.title,
+                isValid: false,
+              };
+            }
+          })
+        );
+
         const failedUrls = validationResults.filter((r) => !r.isValid);
 
         // Show error if any images are missing

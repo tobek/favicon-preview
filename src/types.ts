@@ -29,16 +29,6 @@ export interface SharedState {
   version: number;  // Schema version
 }
 
-// Minified structure for URL encoding (shorter keys)
-export interface MinifiedSharedState {
-  f: Array<{      // favicons
-    u: string;    // url
-    t: string;    // title
-  }>;
-  c: string;      // color
-  v: number;      // version
-}
-
 // ImageKit API response
 export interface ImageKitResponse {
   fileId: string;

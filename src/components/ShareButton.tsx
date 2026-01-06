@@ -4,7 +4,6 @@ import {
   uploadMultipleToFirebase,
   hasFirebaseConfig,
 } from '../utils/firebaseUpload';
-import { generateShareUrl, getUrlLengthWarning } from '../utils/shareUrl';
 import { createShortlink } from '../utils/shortlink';
 
 interface ShareButtonProps {
@@ -55,16 +54,6 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
     }
 
     try {
-      // Check URL length warning
-      const lengthWarning = getUrlLengthWarning(
-        uploadedFavicons.map(f => ({ url: 'placeholder', title: f.title })),
-        chromeColorTheme
-      );
-
-      if (lengthWarning) {
-        console.warn(lengthWarning);
-      }
-
       // Upload images to Firebase Storage
       const imagesToUpload = uploadedFavicons.map((favicon) => ({
         id: favicon.id,
@@ -98,16 +87,6 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
         );
       }
 
-      // Generate share URL with successful uploads
-      const successfulFavicons = successes
-        .map((result) => {
-          const originalFavicon = uploadedFavicons.find((f) => f.id === result.id);
-          return originalFavicon
-            ? { url: result.url!, title: originalFavicon.title }
-            : null;
-        })
-        .filter((f): f is { url: string; title: string } => f !== null);
-
       // Update favicons with uploaded URLs for shortlink creation
       const uploadedFaviconsWithUrls = uploadedFavicons.map(f => {
         const uploadResult = uploadResults.find(r => r.id === f.id);
@@ -117,18 +96,16 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
         };
       }).filter(f => f.uploadedImageUrl); // Only include successfully uploaded favicons
 
-      // Try to create shortlink
+      // Create shortlink
       const shortId = await createShortlink(uploadedFaviconsWithUrls, chromeColorTheme);
 
-      let url: string;
-      if (shortId) {
-        // Success - use short URL
-        url = `${window.location.origin}/?s=${shortId}`;
-      } else {
-        // Failed - fall back to long URL (silent)
-        url = generateShareUrl(successfulFavicons, chromeColorTheme);
+      if (!shortId) {
+        setErrorMessage('Failed to create share link. Please try again.');
+        setShareState('error');
+        return;
       }
 
+      const url = `${window.location.origin}/?s=${shortId}`;
       setShareUrl(url);
       setShareState('success');
       onShareSuccess();

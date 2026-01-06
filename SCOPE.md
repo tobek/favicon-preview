@@ -247,20 +247,17 @@ This document tracks detailed version history, planned features, research findin
 3. **Share Flow Updates** ✓
    - [x] Create shortlink after successful image uploads
    - [x] URL format: `/?s=<shortId>` (query parameter)
-   - [x] Silent fallback to long base64 URLs on Firestore failure
-   - [x] No warning banner for fallback
+   - [x] Error handling if shortlink creation fails
 
 4. **Load Flow Updates** ✓
-   - [x] Check `?s=` parameter first for shortlinks
+   - [x] Check `?s=` parameter for shortlinks
    - [x] Load from Firestore by shortId
-   - [x] Fallback to `?share=` parameter (for long URLs)
    - [x] Error handling for missing/invalid shortlinks
 
 **Implementation Details:**
 - Storage: Firestore Database (not Firebase Storage)
 - ID length: 7 characters (collision-resistant for millions of links)
 - URL format: Query parameter `?s=abc1234` for simplicity
-- Backwards compatibility: Long URLs still supported as fallback
 - Security: Public read, validated write, no client deletes
 - Free tier: 50k reads/day, 20k writes/day (sufficient for most usage)
 
