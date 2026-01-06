@@ -68,9 +68,9 @@ function darkenColor(hex: string, amount: number = 0.3): string {
 //   return luminance < 0.5;
 // }
 
-// Helper function to merge uploaded favicons with dummy tabs using middle-outward strategy
+// Helper function to merge uploaded favicons with dummy tabs
 function mergeFavicons(dummyTabs: typeof DUMMY_TABS, uploadedFavicons: CompressedFavicon[]): { icon: string; title: string; id?: string }[] {
-  const baseCount = dummyTabs.length; // Start with 6 base tabs
+  const baseCount = dummyTabs.length; // Start with 5 base tabs
   const uploadCount = uploadedFavicons.length;
 
   // If no uploads, just use dummy tabs
@@ -90,26 +90,13 @@ function mergeFavicons(dummyTabs: typeof DUMMY_TABS, uploadedFavicons: Compresse
     result.push({ icon: dummyTab.icon, title: dummyTab.title });
   }
 
-  // Replace middle-outward with uploaded favicons
-  const middle = Math.floor(totalTabs / 2);
-
+  // Replace from the start with uploaded favicons
   for (let i = 0; i < uploadCount; i++) {
-    let position: number;
-    if (i % 2 === 0) {
-      // Even index: place to the right of middle
-      position = middle + Math.floor(i / 2);
-    } else {
-      // Odd index: place to the left of middle
-      position = middle - Math.ceil(i / 2);
-    }
-
-    if (position >= 0 && position < totalTabs) {
-      result[position] = {
-        icon: uploadedFavicons[i].dataUrl,
-        title: uploadedFavicons[i].title,
-        id: uploadedFavicons[i].id,
-      };
-    }
+    result[i] = {
+      icon: uploadedFavicons[i].dataUrl,
+      title: uploadedFavicons[i].title,
+      id: uploadedFavicons[i].id,
+    };
   }
 
   return result;
@@ -306,20 +293,8 @@ function App() {
       setFaviconsModified(true);
 
       // Calculate which tab position the first new favicon will occupy
-      const currentUploadCount = uploadedFavicons.length;
-      const newUploadCount = updatedFavicons.length;
-      const baseCount = DUMMY_TABS.length;
-      const totalTabs = Math.max(baseCount, newUploadCount);
-      const middle = Math.floor(totalTabs / 2);
-
-      // Calculate position for the first new favicon using middle-outward pattern
-      const i = currentUploadCount;
-      let position: number;
-      if (i % 2 === 0) {
-        position = middle + Math.floor(i / 2);
-      } else {
-        position = middle - Math.ceil(i / 2);
-      }
+      // Since favicons now load from the start, position is just the current count
+      const position = uploadedFavicons.length;
 
       // Set this tab as active
       setActiveTabIndex(position);
