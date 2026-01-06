@@ -385,16 +385,43 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
   };
 
   // Download favicon (compressed version if available)
-  const downloadFavicon = (favicon: CompressedFavicon) => {
-    const dataUrl = favicon.compressedDataUrl || favicon.dataUrl;
-    const link = document.createElement('a');
-    link.href = dataUrl;
+  const downloadFavicon = async (e: React.MouseEvent, favicon: CompressedFavicon) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const imageUrl = favicon.compressedDataUrl || favicon.dataUrl;
     // Sanitize filename
     const sanitizedTitle = favicon.title.replace(/[^a-z0-9_.-]/gi, '_');
-    link.download = `${sanitizedTitle}-favicon.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const filename = `${sanitizedTitle}-favicon.png`;
+
+    // For external URLs (like Firebase Storage), we need to fetch and convert to blob
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      try {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const blobUrl = URL.createObjectURL(blob);
+
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        // Clean up the blob URL after a short delay
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+      } catch (error) {
+        console.error('Failed to download favicon:', error);
+      }
+    } else {
+      // For data URLs, use the standard approach
+      const link = document.createElement('a');
+      link.href = imageUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   return (
@@ -664,7 +691,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                           </Tooltip>
                           <Tooltip content="Download favicon">
                             <button
-                              onClick={() => downloadFavicon(favicon)}
+                              onClick={(e) => downloadFavicon(e, favicon)}
                               className={`cursor-pointer transition-colors ${
                                 isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-slate-500 hover:text-slate-700'
                               }`}
@@ -758,7 +785,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
         {/* Preview Rows - Single Scrollable Container */}
         <div className="relative">
           {/* Collapse Toggle - Positioned absolutely at right, aligned with first heading */}
-          <div className="absolute right-0 top-0 z-10">
+          <div className="absolute right-0 top-0 z-10 opacity-75 hover:opacity-100 transition-opacity">
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
