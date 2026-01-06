@@ -598,11 +598,32 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
               {/* Uploaded Favicons List */}
               {(uploadedFavicons.length > 0 || loadingFavicons.length > 0) && (
                 <div className="space-y-2">
-                  <h3 className={`text-sm font-semibold transition-colors ${
-                    isDarkMode ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    Loaded Favicons ({uploadedFavicons.length}{loadingFavicons.length > 0 ? ` + ${loadingFavicons.length} loading` : ''})
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className={`text-sm font-semibold transition-colors ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      Loaded Favicons ({uploadedFavicons.length}{loadingFavicons.length > 0 ? ` + ${loadingFavicons.length} loading` : ''})
+                    </h3>
+                    {uploadedFavicons.length > 0 && (
+                      <Tooltip content="Clear all">
+                        <button
+                          onClick={() => {
+                            setUploadedFavicons([]);
+                            setFaviconsModified(true);
+                          }}
+                          className={`cursor-pointer hover:text-red-500 transition-colors ${
+                            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                          }`}
+                          aria-label="Clear all favicons"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      </Tooltip>
+                    )}
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {/* Uploaded favicons */}
                     {uploadedFavicons.map((favicon) => {
