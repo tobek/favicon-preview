@@ -118,7 +118,7 @@ function mergeFavicons(dummyTabs: typeof DUMMY_TABS, uploadedFavicons: Compresse
 function App() {
   const [isCollapsed, setIsCollapsed] = useState(getInitialCollapsedState);
   const [isDarkMode, setIsDarkMode] = useState(true);
-  const [chromeColorTheme, setChromeColorTheme] = useState('#2a122b');
+  const [chromeColorTheme, setChromeColorTheme] = useState('#4a2b50');
   const [activeTabIndex, setActiveTabIndex] = useState(1); // 2nd tab is initially active
   const [uploadedFavicons, setUploadedFavicons] = useState<CompressedFavicon[]>([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -426,7 +426,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
       className={`min-h-screen p-8 transition-colors ${
         isDarkMode
           ? 'bg-gradient-to-br from-gray-900 to-gray-800'
-          : 'bg-gradient-to-br from-gray-100 to-gray-300'
+          : 'bg-gradient-to-br from-slate-100 to-slate-300'
       }`}
       onDragEnter={handleDragEnter}
       onDragOver={handleDragOver}
@@ -476,14 +476,14 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
           <div className={`absolute inset-0 transition-colors ${
             isDarkMode
               ? 'bg-gray-900/90 backdrop-blur-sm'
-              : 'bg-gray-100/90 backdrop-blur-sm'
+              : 'bg-slate-100/90 backdrop-blur-sm'
           }`}>
             <div className={`absolute inset-0 border-4 border-dashed m-4 rounded-2xl ${
-              isDarkMode ? 'border-gray-600' : 'border-gray-300'
+              isDarkMode ? 'border-gray-600' : 'border-slate-300'
             }`}></div>
           </div>
           <div className={`relative z-10 flex flex-col items-center gap-4 ${
-            isDarkMode ? 'text-gray-100' : 'text-gray-900'
+            isDarkMode ? 'text-gray-100' : 'text-slate-900'
           }`}>
             <svg
               width="64"
@@ -491,7 +491,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}
+              className={isDarkMode ? 'text-gray-400' : 'text-slate-600'}
             >
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               <polyline points="17 8 12 3 7 8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -509,7 +509,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
           className={`absolute top-0 right-0 p-2 rounded-lg transition-colors hidden md:block cursor-pointer ${
             isDarkMode
               ? 'bg-gray-700 hover:bg-gray-600'
-              : 'bg-gray-200 hover:bg-gray-300'
+              : 'bg-slate-300 hover:bg-slate-400'
           }`}
           aria-label="Toggle dark mode"
         >
@@ -528,7 +528,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
             </svg>
           ) : (
             // Moon icon
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-gray-700">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-slate-700">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           )}
@@ -537,12 +537,12 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className={`text-4xl font-bold transition-colors ${
-            isDarkMode ? 'text-gray-100' : 'text-gray-900'
+            isDarkMode ? 'text-gray-100' : 'text-slate-900'
           }`}>
             Favicon Preview
           </h1>
           <p className={`text-md md:text-lg transition-colors -mb-3 md:mb-0 ${
-            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+            isDarkMode ? 'text-gray-400' : 'text-slate-600'
           }`}>
             Preview and share how your favicons will look in browser tab mockups
           </p>
@@ -554,7 +554,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
             <div className={`px-4 py-3 rounded-lg flex items-center gap-3 ${
               isDarkMode
                 ? 'bg-gray-800 border border-gray-700 text-gray-300'
-                : 'bg-white border border-gray-300 text-gray-700'
+                : 'bg-white border border-slate-300 text-slate-700'
             }`}>
               <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent"></div>
               <p>Loading shared preview...</p>
@@ -565,7 +565,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
           <div className={`rounded-lg border-2 border-dashed p-6 transition-colors ${
             isDarkMode
               ? 'border-gray-600 bg-gray-800/50'
-              : 'border-gray-300 bg-gray-50'
+              : 'border-slate-300 bg-slate-50'
           }`}>
             <div className="space-y-4">
               <div className="text-center">
@@ -582,16 +582,16 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                   className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                     isDarkMode
                       ? 'bg-gray-700 hover:bg-gray-600 text-gray-100'
-                      : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                      : 'bg-gray-200 hover:bg-slate-300 text-slate-900'
                   }`}
                 >
                   Choose Files
                 </button>
                 <p className={`mt-2 text-sm transition-colors hidden md:block ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  isDarkMode ? 'text-gray-400' : 'text-slate-600'
                 }`}>or drag and drop image files here</p>
                 <p className={`text-sm transition-colors hidden md:block ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-600'
+                  isDarkMode ? 'text-gray-400' : 'text-slate-600'
                 }`}>or use cmd/ctrl+v to paste an image</p>
               </div>
 
@@ -600,7 +600,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <h3 className={`text-sm font-semibold transition-colors ${
-                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                      isDarkMode ? 'text-gray-300' : 'text-slate-700'
                     }`}>
                       Loaded Favicons ({uploadedFavicons.length}{loadingFavicons.length > 0 ? ` + ${loadingFavicons.length} loading` : ''})
                     </h3>
@@ -612,7 +612,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                             setFaviconsModified(true);
                           }}
                           className={`cursor-pointer hover:text-red-500 transition-colors ${
-                            isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                            isDarkMode ? 'text-gray-400' : 'text-slate-500'
                           }`}
                           aria-label="Clear all favicons"
                         >
@@ -634,14 +634,14 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                             isDarkMode
                               ? 'bg-gray-700'
-                              : 'bg-white border border-gray-200'
+                              : 'bg-white border border-slate-200'
                           }`}
                         >
                           <img src={favicon.dataUrl} alt="" className="w-4 h-4 object-contain" />
                           <div className="flex items-center gap-1">
                             <div className="relative inline-block">
                               <span className={`invisible whitespace-pre text-sm px-1 py-0.5 ${
-                                isDarkMode ? 'text-gray-200' : 'text-gray-900'
+                                isDarkMode ? 'text-gray-200' : 'text-slate-900'
                               }`}>
                                 {favicon.title || ' '}
                               </span>
@@ -651,7 +651,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                                 value={favicon.title}
                                 onChange={(e) => updateFaviconTitle(favicon.id, e.target.value)}
                                 className={`absolute left-0 top-0 w-full text-sm px-1 py-0.5 rounded border-none outline-none bg-transparent transition-colors ${
-                                  isDarkMode ? 'text-gray-200' : 'text-gray-900'
+                                  isDarkMode ? 'text-gray-200' : 'text-slate-900'
                                 }`}
                               />
                             </div>
@@ -662,7 +662,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                                 viewBox="0 0 24 24"
                                 fill="none"
                                 stroke="currentColor"
-                                className={`flex-shrink-0 transition-colors cursor-pointer ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}
+                                className={`flex-shrink-0 transition-colors cursor-pointer ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-slate-500 hover:text-slate-700'}`}
                                 onClick={() => document.getElementById(inputId)?.focus()}
                               >
                                 <path d="M12 20h9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -676,7 +676,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                               className={`cursor-pointer transition-colors ${
                                 currentBrowserTabFaviconId === favicon.id
                                   ? isDarkMode ? 'text-blue-400' : 'text-blue-600'
-                                  : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+                                  : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-slate-500 hover:text-gray-700'
                               }`}
                               aria-label="Preview in browser tab"
                             >
@@ -690,7 +690,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                             <button
                               onClick={() => downloadFavicon(favicon)}
                               className={`cursor-pointer transition-colors ${
-                                isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+                                isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-slate-500 hover:text-slate-700'
                               }`}
                               aria-label="Download favicon"
                             >
@@ -705,7 +705,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                             <button
                               onClick={() => removeFavicon(favicon.id)}
                               className={`cursor-pointer hover:text-red-500 transition-colors ${
-                                isDarkMode ? 'text-gray-400' : 'text-gray-500'
+                                isDarkMode ? 'text-gray-400' : 'text-slate-500'
                               }`}
                               aria-label="Remove favicon"
                             >
@@ -727,13 +727,13 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                         className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
                           isDarkMode
                             ? 'bg-gray-700'
-                            : 'bg-white border border-gray-200'
+                            : 'bg-white border border-slate-200'
                         }`}
                       >
                         <div className="w-4 h-4 flex items-center justify-center">
                           <div className="animate-spin rounded-full h-3 w-3 border-2 border-gray-400 border-t-transparent"></div>
                         </div>
-                        <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
                           {loading.fileName}
                         </span>
                       </div>
@@ -791,7 +791,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                 className="w-4 h-4 rounded"
               />
               <span className={`text-sm font-medium transition-colors ${
-                isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                isDarkMode ? 'text-gray-300' : 'text-slate-700'
               }`}>
                 Collapse tabs
               </span>
@@ -803,7 +803,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
             {/* Chrome Dark */}
             <div className="space-y-3">
               <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
-                isDarkMode ? 'text-gray-400' : 'text-gray-700'
+                isDarkMode ? 'text-gray-400' : 'text-slate-700'
               }`}>
                 Chrome - Dark Mode
               </h2>
@@ -827,7 +827,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
             {/* Chrome Light */}
             <div className="space-y-3">
               <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
-                isDarkMode ? 'text-gray-400' : 'text-gray-700'
+                isDarkMode ? 'text-gray-400' : 'text-slate-700'
               }`}>
                 Chrome - Light Mode
               </h2>
@@ -852,7 +852,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
-                  isDarkMode ? 'text-gray-400' : 'text-gray-700'
+                  isDarkMode ? 'text-gray-400' : 'text-slate-700'
                 }`}>
                   Chrome - Color Theme
                 </h2>
@@ -864,7 +864,7 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
                     className="w-8 h-8 rounded cursor-pointer border-none"
                     title="Pick a theme color"
                   />
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-colors ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" className={`transition-colors ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>
                     <path d="M12 20h9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -900,11 +900,11 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
             {/* Safari Tahoe Dark */}
             <div className="space-y-3">
               <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
-                isDarkMode ? 'text-gray-400' : 'text-gray-700'
+                isDarkMode ? 'text-gray-400' : 'text-slate-700'
               }`}>
                 Safari - Dark Mode
               </h2>
-              <div className="bg-[#1c1c1e] p-3 rounded-lg overflow-hidden w-[1280px] max-w-[calc(100vw-64px)]">
+              <div className="bg-[#1c1c1e] p-3 rounded-lg overflow-hidden w-[1280px] max-w-[calc(100vw-5rem)]">
                 <div className="flex items-center gap-1.5 w-full">
                   {allTabs.map((tab, i) => (
                     <SafariTahoeDarkTab
@@ -923,11 +923,11 @@ const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
             {/* Safari Tahoe Light */}
             <div className="space-y-3">
               <h2 className={`text-sm font-semibold uppercase tracking-wider transition-colors ${
-                isDarkMode ? 'text-gray-400' : 'text-gray-700'
+                isDarkMode ? 'text-gray-400' : 'text-slate-700'
               }`}>
                 Safari - Light Mode
               </h2>
-              <div className="bg-[#e8e8ed] p-3 rounded-lg overflow-hidden w-[1280px] max-w-[calc(100vw-64px)]">
+              <div className="bg-[#e8e8ed] p-3 rounded-lg overflow-hidden w-[1280px] max-w-[calc(100vw-5rem)]">
                 <div className="flex items-center gap-1.5 w-full">
                   {allTabs.map((tab, i) => (
                     <SafariTahoeLightTab

@@ -173,7 +173,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
 
   if (!hasCredentials) {
     return (
-      <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+      <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>
         <p>Firebase not configured</p>
         <p className="text-xs mt-1">
           Check src/config/firebase.config.ts
@@ -196,7 +196,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
                 : 'bg-blue-500 hover:bg-blue-600 text-white'
               : isDarkMode
               ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-gray-300 text-slate-500 cursor-not-allowed'
           }`}
         >
           Share Preview
@@ -206,7 +206,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
       {/* Uploading State */}
       {shareState === 'uploading' && (
         <div className="space-y-2">
-          <div className={`flex items-center gap-2 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+          <div className={`flex items-center gap-2 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent"></div>
             <span>
               Uploading {uploadProgress.completed}/{uploadProgress.total}...
@@ -237,7 +237,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
               className={`flex-1 min-w-[400px] px-3 py-2 rounded-lg text-sm font-mono ${
                 isDarkMode
                   ? 'bg-gray-800 text-gray-200 border-gray-700'
-                  : 'bg-white text-gray-900 border-gray-300'
+                  : 'bg-white text-slate-900 border-slate-300'
               } border`}
             />
             <button
@@ -249,7 +249,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
                     : 'bg-green-600 text-white'
                   : isDarkMode
                   ? 'bg-gray-700 hover:bg-gray-600 text-gray-100'
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                  : 'bg-slate-200 hover:bg-slate-300 text-slate-900'
               }`}
             >
               {linkCopied ? (
@@ -267,7 +267,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
 
           {/* Partial Failure Details */}
           {partialFailures.length > 0 && (
-            <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>
               <p>Some favicons failed to upload but the share link was created with the successful ones.</p>
             </div>
           )}
@@ -312,7 +312,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
           <div className={`text-sm font-medium ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
             Failed to create share link
           </div>
-          <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+          <div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-slate-600'}`}>
             {errorMessage}
           </div>
           <div className="flex gap-2">
@@ -321,14 +321,14 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 isDarkMode
                   ? 'bg-gray-700 hover:bg-gray-600 text-gray-100'
-                  : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                  : 'bg-slate-200 hover:bg-slate-300 text-slate-900'
               }`}
             >
               Retry
             </button>
             <button
               onClick={() => setShareState('idle')}
-              className={`text-sm underline ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-600 hover:text-gray-700'}`}
+              className={`text-sm underline ${isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-slate-600 hover:text-slate-700'}`}
             >
               Cancel
             </button>
