@@ -5,8 +5,39 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Favicon Preview</title>
+    <style>
+      body.dark {
+        background: linear-gradient(to bottom right, #101828, #1e2939);
+      }
+      body.light {
+        background: linear-gradient(to bottom right, #f9f3f4, #cad5e2);
+      }
+    </style>
+
   </head>
-  <body style="margin: 0; min-height: 100vh; background: linear-gradient(to bottom right, #101828, #1e2939);">
+  <body style="margin: 0; min-height: 100vh;">
+    <script>
+      function getInitialDarkMode() {
+        // Try to detect from browser
+        if (window.matchMedia) {
+          if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            return true;
+          }
+          if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+            return false;
+          }
+        }
+
+        // Fallback to time of day (6pm - 6am is dark mode)
+        const hour = new Date().getHours();
+        return hour >= 18 || hour < 6;
+      }
+      if (getInitialDarkMode()) {
+        document.body.classList.add('dark');
+      } else {
+        document.body.classList.add('light');
+      }
+    </script>
     <div id="initial-content" style="width: 100%; position: absolute; z-index: -1">
       <!-- Loading Spinner -->
       <div id="loading-indicator" style="display: flex; justify-content: center; align-items: center; padding: 3rem 0;">

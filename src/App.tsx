@@ -104,7 +104,8 @@ function mergeFavicons(dummyTabs: typeof DUMMY_TABS, uploadedFavicons: Compresse
 
 function App() {
   const [isCollapsed, setIsCollapsed] = useState(getInitialCollapsedState);
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  // body class is set in index.html
+  const [isDarkMode, setIsDarkMode] = useState(document.body.classList.contains('dark'));
   const [chromeColorTheme, setChromeColorTheme] = useState('#4a2b50');
   const [activeTabIndex, setActiveTabIndex] = useState(1); // 2nd tab is initially active
   const [uploadedFavicons, setUploadedFavicons] = useState<CompressedFavicon[]>([]);
