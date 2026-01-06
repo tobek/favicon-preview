@@ -22,6 +22,11 @@ const DUMMY_TABS = [
   { icon: 'https://slatestarcodex.com/favicon.ico', title: 'Slate Star Codex' },
 ];
 
+// Available favicons for cycling in the browser tab
+const FAV_PREV_FAVICONS = Array.from({ length: 16 }, (_, i) =>
+  `/favicons/fav${String(i + 1).padStart(2, '0')}.png`
+);
+
 // Detect initial collapsed state based on viewport width
 function getInitialCollapsedState(): boolean {
   return window.innerWidth < 500;
@@ -117,11 +122,54 @@ function App() {
   const [faviconsModified, setFaviconsModified] = useState(false);
   const [isSharedPreview, setIsSharedPreview] = useState(false);
   const [isUploadSectionExpanded, setIsUploadSectionExpanded] = useState(false);
+  const [isCyclingFavicons, setIsCyclingFavicons] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
 
   // Merge uploaded favicons with dummy tabs
   const allTabs = mergeFavicons(DUMMY_TABS, uploadedFavicons);
+
+  // Cycle through favicons in browser tab every 1.5 seconds
+  useEffect(() => {
+    if (!isCyclingFavicons) return;
+
+    let previousFavicon: string | null = null;
+
+    const getRandomFavicon = () => {
+      let randomIndex: number;
+      let newFavicon: string;
+
+      // Keep trying until we get a different favicon
+      do {
+        randomIndex = Math.floor(Math.random() * FAV_PREV_FAVICONS.length);
+        newFavicon = FAV_PREV_FAVICONS[randomIndex];
+      } while (newFavicon === previousFavicon && FAV_PREV_FAVICONS.length > 1);
+
+      previousFavicon = newFavicon;
+      return newFavicon;
+    };
+
+    // Set initial random favicon
+    const initialFavicon = getRandomFavicon();
+    let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = initialFavicon;
+
+    // Cycle every 1.5 seconds
+    const intervalId = setInterval(() => {
+      const randomFavicon = getRandomFavicon();
+      const faviconLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+      if (faviconLink) {
+        faviconLink.href = randomFavicon;
+      }
+    }, 1500);
+
+    return () => clearInterval(intervalId);
+  }, [isCyclingFavicons]);
 
   // Handle paste events for images
   useEffect(() => {
@@ -355,6 +403,11 @@ function App() {
 
   // Preview favicon in actual browser tab
 const previewFaviconInTab = (dataUrl: string, faviconId?: string) => {
+    // Stop cycling favicons when user previews their own
+    if (isCyclingFavicons) {
+      setIsCyclingFavicons(false);
+    }
+
     // Find existing favicon link element or create new one
     let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
     if (!link) {

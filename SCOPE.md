@@ -277,11 +277,8 @@ This document tracks detailed version history, planned features, research findin
 
 ## Planned Features
 
-### v1.x+ (Future)
 - Cleanup script to remove all uploaded favicons and shortlinks in Firebase that are older than 6 months (ensure that loading previews with missing favicons/shortlinks fails gracefully)
-- Improve visual fidelity based on research
-  - Safari tabs fill available space?
-  - Check Safari too-long title truncation style
+- Improve visual fidelity based on research/screenshots
 
 ## Research Findings
 
