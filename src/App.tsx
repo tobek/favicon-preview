@@ -527,7 +527,7 @@ function App() {
 
   return (
     <div
-      className={`min-h-screen p-8 transition-colors ${
+      className={`min-h-screen p-6 md:p-8 transition-colors ${
         isDarkMode
           ? 'bg-gradient-to-br from-gray-900 to-gray-800'
           : 'bg-gradient-to-br from-slate-100 to-slate-300'
@@ -777,13 +777,13 @@ function App() {
                               </svg>
                             </Tooltip>
                           </div>
-                          <Tooltip content="Preview in browser tab">
+                          <Tooltip content="Preview in browser tab" className="hidden md:inline-flex">
                             <button
                               onClick={() => previewFaviconInTab(favicon.dataUrl, favicon.id, true)}
-                              className={`cursor-pointer transition-colors hidden md:inline-block ${
+                              className={`cursor-pointer transition-colors ${
                                 currentBrowserTabFaviconId === favicon.id
                                   ? isDarkMode ? 'text-blue-400' : 'text-blue-600'
-                                  : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-slate-500 hover:text-gray-700'
+                                  : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-slate-500 hover:text-slate-700'
                               }`}
                               aria-label="Preview in browser tab"
                             >
@@ -1025,7 +1025,7 @@ function App() {
               }`}>
                 Safari - Dark Mode
               </h2>
-              <div className="bg-[#1c1c1e] p-3 rounded-lg overflow-hidden w-[1280px] max-w-[calc(100vw-5rem)]">
+              <div className="bg-[#1c1c1e] p-3 rounded-lg overflow-hidden w-[1280px] max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-5rem)]">
                 <div className="flex items-center gap-1.5 w-full">
                   {allTabs.map((tab, i) => (
                     <SafariTahoeDarkTab
@@ -1048,7 +1048,7 @@ function App() {
               }`}>
                 Safari - Light Mode
               </h2>
-              <div className="bg-[#e8e8ed] p-3 rounded-lg overflow-hidden w-[1280px] max-w-[calc(100vw-5rem)]">
+              <div className="bg-[#e8e8ed] p-3 rounded-lg overflow-hidden w-[1280px] max-w-[calc(100vw-3rem)] md:max-w-[calc(100vw-5rem)]">
                 <div className="flex items-center gap-1.5 w-full">
                   {allTabs.map((tab, i) => (
                     <SafariTahoeLightTab
@@ -1068,7 +1068,7 @@ function App() {
         </div>
 
         {/* Footer */}
-        <div className="text-center mt-16 space-y-1">
+        <div className="text-center mt-8 md:mt-16 space-y-1">
           <p className={`text-sm transition-colors ${
             isDarkMode ? 'text-gray-500' : 'text-slate-400'
           }`}>
