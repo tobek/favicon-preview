@@ -1,6 +1,6 @@
 import type { TabProps } from "../../types.ts";
 
-export function ChromeLightTab({ favicon, title, isActive = false, isCollapsed = false, onClick }: TabProps) {
+export function ChromeLightTab({ favicon, title, isActive = false, isCollapsed = false, onClick, onClose }: TabProps) {
   return (
     <div
       onClick={onClick}
@@ -31,6 +31,10 @@ export function ChromeLightTab({ favicon, title, isActive = false, isCollapsed =
             {title}
           </span>
           <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose?.();
+            }}
             className="w-[18px] h-[18px] flex-shrink-0 hover:bg-[#c4c7cc] rounded flex items-center justify-center transition-colors self-center"
             aria-label="Close tab"
           >

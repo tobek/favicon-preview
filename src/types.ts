@@ -4,6 +4,7 @@ export interface TabProps {
   isActive?: boolean;
   isCollapsed?: boolean;
   onClick?: () => void;
+  onClose?: () => void;
 }
 
 export interface UploadedFavicon {
@@ -27,6 +28,7 @@ export interface SharedState {
   }>;
   color: string;    // Hex without #
   version: number;  // Schema version
+  closedDummyTabs?: number[];  // Indices of closed dummy tabs
 }
 
 // ImageKit API response
@@ -51,4 +53,5 @@ export interface ShortlinkDocument {
   color: string;       // Hex without #
   version: number;
   createdAt: number;   // Timestamp
+  closedDummyTabs?: number[];
 }

@@ -1,6 +1,6 @@
 import type { TabProps } from "../../types.ts";
 
-export function SafariTahoeLightTab({ favicon, title, isActive = false, isCollapsed = false, onClick }: TabProps) {
+export function SafariTahoeLightTab({ favicon, title, isActive = false, isCollapsed = false, onClick, onClose }: TabProps) {
   return (
     <div
       onClick={onClick}
@@ -25,6 +25,10 @@ export function SafariTahoeLightTab({ favicon, title, isActive = false, isCollap
             {title}
           </span>
           <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose?.();
+            }}
             className="absolute right-1.5 w-[16px] h-[16px] flex-shrink-0 hover:bg-black/10 rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
             aria-label="Close tab"
           >

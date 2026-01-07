@@ -20,7 +20,8 @@ export function generateShortId(): string {
  */
 export async function createShortlink(
   favicons: CompressedFavicon[],
-  chromeColorTheme: string
+  chromeColorTheme: string,
+  closedDummyTabs: number[] = []
 ): Promise<string | null> {
   for (let attempt = 0; attempt < 3; attempt++) {
     const shortId = generateShortId();
@@ -34,7 +35,8 @@ export async function createShortlink(
         })),
         color: chromeColorTheme.replace('#', ''),
         version: 1,
-        createdAt: Date.now()
+        createdAt: Date.now(),
+        closedDummyTabs: closedDummyTabs.length > 0 ? closedDummyTabs : undefined
       };
 
       await setDoc(doc(db, 'shortlinks', shortId), data);
@@ -66,7 +68,8 @@ export async function loadShortlink(shortId: string): Promise<SharedState | null
     return {
       favicons: data.favicons,
       color: data.color,
-      version: data.version
+      version: data.version,
+      closedDummyTabs: data.closedDummyTabs || []
     };
   } catch (error) {
     console.error('Failed to load shortlink:', error);

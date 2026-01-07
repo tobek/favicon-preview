@@ -24,7 +24,8 @@ export function ChromeColorTab({
   isActive = false,
   isCollapsed = false,
   bgColor = "#3f6a64",
-  onClick
+  onClick,
+  onClose
 }: ChromeColorTabProps) {
   // Active tab is lighter, inactive is darker
   const activeBg = bgColor;
@@ -65,6 +66,10 @@ export function ChromeColorTab({
             {title}
           </span>
           <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose?.();
+            }}
             className={`w-[18px] h-[18px] flex-shrink-0 rounded flex items-center justify-center transition-colors self-center ${
               useLightText ? 'hover:bg-white/20' : 'hover:bg-black/20'
             }`}

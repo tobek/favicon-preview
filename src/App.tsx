@@ -78,25 +78,51 @@ function darkenColor(hex: string, amount: number = 0.3): string {
 // }
 
 // Helper function to merge uploaded favicons with dummy tabs
-function mergeFavicons(dummyTabs: typeof DUMMY_TABS, uploadedFavicons: CompressedFavicon[]): { icon: string; title: string; id?: string }[] {
+function mergeFavicons(
+  dummyTabs: typeof DUMMY_TABS,
+  uploadedFavicons: CompressedFavicon[],
+  closedDummyIndices: number[]
+): { icon: string; title: string; id?: string; dummyIndex?: number }[] {
   const baseCount = dummyTabs.length; // Start with 5 base tabs
   const uploadCount = uploadedFavicons.length;
 
-  // If no uploads, just use dummy tabs
-  if (uploadCount === 0) {
-    return dummyTabs.map(tab => ({ icon: tab.icon, title: tab.title, id: undefined }));
+  // Filter out closed dummy tabs
+  const availableDummyTabs = dummyTabs
+    .map((tab, index) => ({ ...tab, originalIndex: index }))
+    .filter(tab => !closedDummyIndices.includes(tab.originalIndex));
+
+  // If no uploads and no available dummy tabs, return empty
+  if (uploadCount === 0 && availableDummyTabs.length === 0) {
+    return [];
   }
 
-  // Calculate total tabs needed (at least baseCount, more if uploads > baseCount)
-  const totalTabs = Math.max(baseCount, uploadCount);
+  // If no uploads, just use available dummy tabs
+  if (uploadCount === 0) {
+    return availableDummyTabs.map(tab => ({
+      icon: tab.icon,
+      title: tab.title,
+      id: undefined,
+      dummyIndex: tab.originalIndex
+    }));
+  }
+
+  // Calculate total tabs needed
+  // Reduce total when dummy tabs are closed
+  const totalTabs = Math.max(uploadCount, baseCount - closedDummyIndices.length);
 
   // Create array to hold all tabs
-  const result: { icon: string; title: string; id?: string }[] = [];
+  const result: { icon: string; title: string; id?: string; dummyIndex?: number }[] = [];
 
-  // Fill with dummy tabs first
+  // Fill with available dummy tabs first (cycling if needed)
   for (let i = 0; i < totalTabs; i++) {
-    const dummyTab = dummyTabs[i % dummyTabs.length];
-    result.push({ icon: dummyTab.icon, title: dummyTab.title });
+    if (availableDummyTabs.length > 0) {
+      const dummyTab = availableDummyTabs[i % availableDummyTabs.length];
+      result.push({
+        icon: dummyTab.icon,
+        title: dummyTab.title,
+        dummyIndex: dummyTab.originalIndex
+      });
+    }
   }
 
   // Replace from the start with uploaded favicons
@@ -127,11 +153,12 @@ function App() {
   const [isSharedPreview, setIsSharedPreview] = useState(false);
   const [isUploadSectionExpanded, setIsUploadSectionExpanded] = useState(false);
   const [isCyclingFavicons, setIsCyclingFavicons] = useState(!isSafari());
+  const [closedDummyTabIndices, setClosedDummyTabIndices] = useState<number[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
 
   // Merge uploaded favicons with dummy tabs
-  const allTabs = mergeFavicons(DUMMY_TABS, uploadedFavicons);
+  const allTabs = mergeFavicons(DUMMY_TABS, uploadedFavicons, closedDummyTabIndices);
 
   // Update favicon in browser tab (works in Chrome/Firefox/Edge, not Safari)
   const updateFavicon = useCallback((faviconUrl: string) => {
@@ -244,6 +271,11 @@ function App() {
 
         // Set chrome color theme
         setChromeColorTheme(`#${sharedState.color}`);
+
+        // Load closed dummy tabs
+        if (sharedState.closedDummyTabs) {
+          setClosedDummyTabIndices(sharedState.closedDummyTabs);
+        }
 
         // Mark as shared preview
         setIsSharedPreview(true);
@@ -431,6 +463,25 @@ function App() {
   const removeFavicon = (id: string) => {
     setUploadedFavicons(uploadedFavicons.filter(f => f.id !== id));
     setFaviconsModified(true);
+  };
+
+  // Handle tab close
+  const handleTabClose = (index: number) => {
+    const tab = allTabs[index];
+    if (tab.id) {
+      // User-uploaded favicon - remove it
+      removeFavicon(tab.id);
+    } else if (tab.dummyIndex !== undefined) {
+      // Dummy tab - track as closed
+      setClosedDummyTabIndices(prev => [...prev, tab.dummyIndex!]);
+      setFaviconsModified(true);
+    }
+    // Adjust active tab if needed
+    if (activeTabIndex >= allTabs.length - 1) {
+      setActiveTabIndex(Math.max(0, allTabs.length - 2));
+    } else if (index < activeTabIndex) {
+      setActiveTabIndex(activeTabIndex - 1);
+    }
   };
 
   // Update favicon title
@@ -648,7 +699,7 @@ function App() {
           <p className={`text-md md:text-lg transition-colors -mb-3 md:mb-0 ${
             isDarkMode ? 'text-gray-400' : 'text-slate-600'
           }`}>
-            Preview and share how your favicons will look in browser tab mockups
+            Preview and share how your favicons will look across browser tab themes
           </p>
         </div>
 
@@ -878,6 +929,7 @@ function App() {
                     chromeColorTheme={chromeColorTheme}
                     isDarkMode={isDarkMode}
                     faviconsModified={faviconsModified}
+                    closedDummyTabIndices={closedDummyTabIndices}
                     onShareSuccess={() => {
                       setFaviconsModified(false);
                       setIsSharedPreview(false);
@@ -891,6 +943,7 @@ function App() {
                 chromeColorTheme={chromeColorTheme}
                 isDarkMode={isDarkMode}
                 faviconsModified={faviconsModified}
+                closedDummyTabIndices={closedDummyTabIndices}
                 onShareSuccess={() => {
                   setFaviconsModified(false);
                   setIsSharedPreview(false);
@@ -938,6 +991,7 @@ function App() {
                       isActive={i === activeTabIndex}
                       isCollapsed={isCollapsed}
                       onClick={() => handleTabClick(i)}
+                      onClose={() => handleTabClose(i)}
                     />
                   ))}
                 </div>
@@ -962,6 +1016,7 @@ function App() {
                       isActive={i === activeTabIndex}
                       isCollapsed={isCollapsed}
                       onClick={() => handleTabClick(i)}
+                      onClose={() => handleTabClose(i)}
                     />
                   ))}
                 </div>
@@ -1008,6 +1063,7 @@ function App() {
                       isCollapsed={isCollapsed}
                       bgColor={chromeColorTheme}
                       onClick={() => handleTabClick(i)}
+                      onClose={() => handleTabClose(i)}
                     />
                   ))}
                 </div>
@@ -1035,6 +1091,7 @@ function App() {
                       isActive={i === activeTabIndex}
                       isCollapsed={isCollapsed}
                       onClick={() => handleTabClick(i)}
+                      onClose={() => handleTabClose(i)}
                     />
                   ))}
                 </div>
@@ -1058,6 +1115,7 @@ function App() {
                       isActive={i === activeTabIndex}
                       isCollapsed={isCollapsed}
                       onClick={() => handleTabClick(i)}
+                      onClose={() => handleTabClose(i)}
                     />
                   ))}
                 </div>

@@ -11,12 +11,13 @@ interface ShareButtonProps {
   chromeColorTheme: string;
   isDarkMode: boolean;
   faviconsModified: boolean;
+  closedDummyTabIndices: number[];
   onShareSuccess: () => void;
 }
 
 type ShareState = 'idle' | 'uploading' | 'success' | 'error';
 
-export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, faviconsModified, onShareSuccess }: ShareButtonProps) {
+export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, faviconsModified, closedDummyTabIndices, onShareSuccess }: ShareButtonProps) {
   const [shareState, setShareState] = useState<ShareState>('idle');
   const [shareUrl, setShareUrl] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0 });
@@ -97,7 +98,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
       }).filter(f => f.uploadedImageUrl); // Only include successfully uploaded favicons
 
       // Create shortlink
-      const shortId = await createShortlink(uploadedFaviconsWithUrls, chromeColorTheme);
+      const shortId = await createShortlink(uploadedFaviconsWithUrls, chromeColorTheme, closedDummyTabIndices);
 
       if (!shortId) {
         setErrorMessage('Failed to create share link. Please try again.');
