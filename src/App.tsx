@@ -31,6 +31,11 @@ function getInitialCollapsedState(): boolean {
   return window.innerWidth < 500;
 }
 
+// Detect if browser is Safari
+function isSafari(): boolean {
+  return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+}
+
 // Detect if URL has share parameters
 function hasShareParams(): boolean {
   const params = new URLSearchParams(window.location.search);
@@ -121,12 +126,23 @@ function App() {
   const [faviconsModified, setFaviconsModified] = useState(false);
   const [isSharedPreview, setIsSharedPreview] = useState(false);
   const [isUploadSectionExpanded, setIsUploadSectionExpanded] = useState(false);
-  const [isCyclingFavicons, setIsCyclingFavicons] = useState(true);
+  const [isCyclingFavicons, setIsCyclingFavicons] = useState(!isSafari());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
 
   // Merge uploaded favicons with dummy tabs
   const allTabs = mergeFavicons(DUMMY_TABS, uploadedFavicons);
+
+  // Update favicon in browser tab (works in Chrome/Firefox/Edge, not Safari)
+  const updateFavicon = useCallback((faviconUrl: string) => {
+    let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'icon';
+      document.head.appendChild(link);
+    }
+    link.href = faviconUrl;
+  }, []);
 
   // Cycle through favicons in browser tab every 1 second
   useEffect(() => {
@@ -150,25 +166,16 @@ function App() {
 
     // Set initial random favicon
     const initialFavicon = getRandomFavicon();
-    let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = 'icon';
-      document.head.appendChild(link);
-    }
-    link.href = initialFavicon;
+    updateFavicon(initialFavicon);
 
     // Cycle every 1 second
     const intervalId = setInterval(() => {
       const randomFavicon = getRandomFavicon();
-      const faviconLink = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-      if (faviconLink) {
-        faviconLink.href = randomFavicon;
-      }
+      updateFavicon(randomFavicon);
     }, 1000);
 
     return () => clearInterval(intervalId);
-  }, [isCyclingFavicons]);
+  }, [isCyclingFavicons, updateFavicon]);
 
   // Load shared state from URL on mount
   useEffect(() => {
@@ -269,24 +276,23 @@ function App() {
   };
 
   // Preview favicon in actual browser tab
-  const previewFaviconInTab = useCallback((dataUrl: string, faviconId?: string) => {
+  const previewFaviconInTab = useCallback((dataUrl: string, faviconId?: string, userInitiated = false) => {
+    // Show alert only when user explicitly clicks to preview on Safari
+    if (userInitiated && isSafari()) {
+      alert("Safari doesn't support dynamic favicon updates. Try a modern browser like Chrome or Firefox for full support.");
+      return;
+    }
+
     // Stop cycling favicons when user previews their own
     if (isCyclingFavicons) {
       setIsCyclingFavicons(false);
     }
 
-    // Find existing favicon link element or create new one
-    let link = document.querySelector("link[rel*='icon']") as HTMLLinkElement;
-    if (!link) {
-      link = document.createElement('link');
-      link.rel = 'icon';
-      document.head.appendChild(link);
-    }
-    link.href = dataUrl;
+    updateFavicon(dataUrl);
 
     // Update current browser tab favicon ID (or clear when previewing dummy tabs)
     setCurrentBrowserTabFaviconId(faviconId ?? null);
-  }, [isCyclingFavicons]);
+  }, [isCyclingFavicons, updateFavicon]);
 
   // Handle file upload
   const handleFileUpload = useCallback(async (files: FileList | null) => {
@@ -773,8 +779,8 @@ function App() {
                           </div>
                           <Tooltip content="Preview in browser tab">
                             <button
-                              onClick={() => previewFaviconInTab(favicon.dataUrl, favicon.id)}
-                              className={`cursor-pointer transition-colors ${
+                              onClick={() => previewFaviconInTab(favicon.dataUrl, favicon.id, true)}
+                              className={`cursor-pointer transition-colors hidden md:inline-block ${
                                 currentBrowserTabFaviconId === favicon.id
                                   ? isDarkMode ? 'text-blue-400' : 'text-blue-600'
                                   : isDarkMode ? 'text-gray-400 hover:text-gray-300' : 'text-slate-500 hover:text-gray-700'
