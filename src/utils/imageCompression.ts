@@ -1,6 +1,6 @@
 /**
  * Image Compression Utility
- * Compresses images to reduce file size before uploading to ImageKit
+ * Compresses images to reduce file size before uploading to Firebase Storage
  * Uses Canvas API to resize and compress while maintaining quality
  */
 
