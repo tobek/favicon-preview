@@ -36,7 +36,7 @@ export async function createShortlink(
         color: chromeColorTheme.replace('#', ''),
         version: 1,
         createdAt: Date.now(),
-        closedDummyTabs: closedDummyTabs.length > 0 ? closedDummyTabs : undefined
+        ...(closedDummyTabs.length > 0 && { closedDummyTabs })
       };
 
       await setDoc(doc(db, 'shortlinks', shortId), data);
