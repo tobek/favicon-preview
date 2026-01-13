@@ -10,6 +10,7 @@ import type { CompressedFavicon } from './types.ts';
 import { Tooltip } from './components/Tooltip';
 import { compressImage } from './utils/imageCompression';
 import { ShareButton } from './components/ShareButton';
+import { DownloadAllButton } from './components/DownloadAllButton';
 import { loadShortlink } from './utils/shortlink';
 
 // Dummy favicons for context
@@ -901,6 +902,12 @@ function App() {
               )}
               </div>
             </div>
+            {/* Download All Button - Desktop only, shared preview mode */}
+            {uploadedFavicons.length > 0 && isSharedPreview && (
+              <div className="hidden md:flex justify-center mt-2 mb-4">
+                <DownloadAllButton favicons={uploadedFavicons} isDarkMode={isDarkMode} />
+              </div>
+            )}
             {/* Expand/Collapse Button - Mobile only, when 3+ favicons */}
             {uploadedFavicons.length >= 3 && (
               <button

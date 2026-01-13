@@ -272,6 +272,33 @@ This document tracks detailed version history, planned features, research findin
 - `src/components/ShareButton.tsx` - Integrated shortlink creation
 - `src/App.tsx` - Load from `?s=` parameter with fallback
 
+### v1.2 - Download All Feature
+
+1. **Zip Download for Shared Previews** ✓
+   - [x] "Download All as ZIP" button in shared preview mode
+   - [x] Client-side zip generation using jszip library
+   - [x] Button visible only on desktop (hidden on mobile)
+   - [x] Progress indicator during zip creation
+   - [x] Automatic file extension detection from MIME type
+   - [x] Filename sanitization for safe downloads
+
+**Implementation Details:**
+- Client-side only: No server-side processing required
+- Compression: DEFLATE level 6 (balance between speed and size)
+- Default filename: `favicons.zip`
+- File naming: `{sanitizedTitle}.{extension}` with auto-detected extensions
+- Error handling: Individual file failures don't stop entire download
+- Visibility: Desktop only (`hidden md:block`), shared preview mode only
+
+**Files Created:**
+- `src/utils/zipDownload.ts` - Zip creation and download logic
+- `src/components/DownloadAllButton.tsx` - Download all button component
+
+**Files Modified:**
+- `package.json` - Added jszip and @types/jszip dependencies
+- `src/App.tsx` - UI integration for download all button
+- `src/components/ShareButton.tsx` - Fixed TypeScript setTimeout type issue
+
 ## Planned Features
 
 - Cleanup script to remove all uploaded favicons and shortlinks in Firebase that are older than 6 months (ensure that loading previews with missing favicons/shortlinks fails gracefully)

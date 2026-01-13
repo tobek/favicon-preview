@@ -130,7 +130,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
       // Reset after 2 seconds
       linkCopiedTimeoutRef.current = setTimeout(() => {
         setLinkCopied(false);
-      }, 2000);
+      }, 2000) as unknown as number;
     } catch (error) {
       console.error('Failed to copy link:', error);
       // Fallback: select the text

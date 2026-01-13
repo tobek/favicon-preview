@@ -16,6 +16,7 @@
 **Main Components:**
 - `src/App.tsx` - State management for uploads, themes, sharing
 - `src/components/ShareButton.tsx` - Share flow orchestration
+- `src/components/DownloadAllButton.tsx` - Download all favicons as ZIP
 - `src/components/Tooltip.tsx` - Custom CSS tooltip component
 
 **Utilities:**
@@ -23,6 +24,7 @@
 - `src/utils/firebaseUpload.ts` - Firebase Storage uploads
 - `src/utils/shareUrl.ts` - URL encoding/decoding (fallback for long URLs)
 - `src/utils/shortlink.ts` - Firestore shortlink operations (generate, create, load)
+- `src/utils/zipDownload.ts` - Zip creation and download logic
 - `src/firebase.ts` - Firebase initialization (Storage + Firestore)
 - `src/types.ts` - TypeScript interfaces
 
