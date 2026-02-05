@@ -13,13 +13,13 @@ import { ShareButton } from './components/ShareButton';
 import { DownloadAllButton } from './components/DownloadAllButton';
 import { loadShortlink } from './utils/shortlink';
 
-// Dummy favicons for context
+// Dummy favicons for context (hosted locally to prevent breakage)
 const DUMMY_TABS = [
-  { icon: 'https://www.google.com/favicon.ico', title: 'Google' },
-  { icon: 'https://en.wikipedia.org/static/favicon/wikipedia.ico', title: 'Wikipedia' },
-  { icon: 'https://www.youtube.com/s/desktop/73a518d0/img/favicon_32x32.png', title: 'YouTube' },
-  { icon: 'https://stackoverflow.com/favicon.ico', title: 'Stack Overflow' },
-  { icon: 'https://slatestarcodex.com/favicon.ico', title: 'Slate Star Codex' },
+  { icon: '/dummy-favicons/google.png', title: 'Google' },
+  { icon: '/dummy-favicons/wikipedia.png', title: 'Wikipedia' },
+  { icon: '/dummy-favicons/youtube.png', title: 'YouTube' },
+  { icon: '/dummy-favicons/stackoverflow.png', title: 'Stack Overflow' },
+  { icon: '/dummy-favicons/slatestarcodex.png', title: 'Slate Star Codex' },
 ];
 
 // Available favicons for cycling in the browser tab
