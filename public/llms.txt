@@ -1,0 +1,41 @@
+# Favicon Preview
+
+> https://faviconpreview.fyi
+
+## What is this?
+
+Favicon Preview is a web app for previewing favicons in realistic browser tab contexts. It helps designers and developers see how their favicons will look in actual browsers before deploying them.
+
+## Key Features
+
+- **Upload & Preview**: Drag-drop favicons (.ico, .png, .svg, .webp) or paste from clipboard to instantly see them in browser tab mockups
+- **Multiple Browser Contexts**: Preview across 5 realistic tab designs:
+  - Chrome Dark theme
+  - Chrome Light theme
+  - Chrome Color theme (customizable)
+  - Safari Tahoe Dark theme
+  - Safari Tahoe Light theme
+- **Share Previews**: Generate shareable links to show favicon designs to clients or teammates
+- **Download Options**: Export individual favicons or download all as a ZIP file
+- **Interactive Tabs**: Click tabs to activate, edit titles, expand/collapse to see different states
+
+## How It Works
+
+1. **Client-Side Processing**: All file handling happens in your browser using the FileReader API—no server uploads during preview
+2. **Realistic Mockups**: Tab designs capture the look and feel of real Chrome and Safari tabs with active/inactive states
+3. **Shareable Links**: When sharing, favicons are compressed (max 256×256) and uploaded to Firebase Storage, generating a short URL like `faviconpreview.fyi/?s=abc1234`
+
+## Tech Stack
+
+- React + Vite + Tailwind CSS
+- Firebase Storage (shared image hosting)
+- Firestore Database (shortlink storage)
+- 100% client-side image processing
+
+## Use Cases
+
+- Preview favicon designs before deployment
+- Compare how favicons look in different browser themes
+- Share favicon mockups with clients or team members
+- Test favicon visibility in active vs. inactive tab states
+- Download optimized favicon files ready for production

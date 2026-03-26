@@ -8,7 +8,7 @@
     ],
     "rewrites": [
       {
-        "source": "**",
+        "source": "!{/robots.txt,/llms.txt}",
         "destination": "/index.html"
       }
     ],
