@@ -28,6 +28,9 @@
 - `src/firebase.ts` - Firebase initialization (Storage + Firestore)
 - `src/types.ts` - TypeScript interfaces
 
+**Admin Scripts:**
+- `scripts/list-shortlinks.ts` - List all saved shortlinks from Firestore
+
 ## Visual Testing
 
 Use the `webapp-testing` skill to verify visual changes unless the change is trivial and you're certain no visual inspection is needed. In order to assess the usefulness of this, please alert the user if this check results in fixes.
