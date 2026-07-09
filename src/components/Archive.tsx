@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { ZoomIn, ZoomOut, Home } from 'lucide-react';
 import { Footer } from './Footer';
 import { Tooltip } from './Tooltip';
@@ -24,6 +24,10 @@ export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps)
   const [zoomIndex, setZoomIndex] = useState(DEFAULT_ZOOM_INDEX);
   const tileSize = ZOOM_LEVELS[zoomIndex];
   const isMobile = isTouchDevice();
+
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [columnCount, setColumnCount] = useState(1);
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     document.title = 'Favicon Archive — Favicon Preview';
@@ -53,6 +57,31 @@ export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps)
       cancelled = true;
     };
   }, []);
+
+  // Track how many tiles fit per row so we can tell where a hovered set's
+  // run breaks across rows (auto-fill columns => count = gridWidth / tileSize).
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const compute = () => {
+      setColumnCount(Math.max(1, Math.floor(el.clientWidth / tileSize)));
+    };
+    compute();
+    const ro = new ResizeObserver(compute);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [tileSize, tiles]);
+
+  // Contiguous run of tiles belonging to the hovered set (same shortId).
+  const hoveredRange = useMemo(() => {
+    if (hoveredIndex === null || !tiles) return null;
+    const shortId = tiles[hoveredIndex].shortId;
+    let start = hoveredIndex;
+    let end = hoveredIndex;
+    while (start > 0 && tiles[start - 1].shortId === shortId) start--;
+    while (end < tiles.length - 1 && tiles[end + 1].shortId === shortId) end++;
+    return { start, end };
+  }, [hoveredIndex, tiles]);
 
   const canZoomIn = zoomIndex < ZOOM_LEVELS.length - 1;
   const canZoomOut = zoomIndex > 0;
@@ -172,6 +201,7 @@ export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps)
           </div>
         ) : (
           <div
+            ref={gridRef}
             className="grid"
             style={{
               gridTemplateColumns: `repeat(auto-fill, ${tileSize}px)`,
@@ -182,6 +212,25 @@ export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps)
           >
             {tiles.map((tile, i) => {
               const titleAttr = !isMobile && tile.title ? tile.title : undefined;
+
+              // Outline the hovered set as one box per row-run. Borders are
+              // inset shadows so they overlap content and cause no layout shift.
+              let boxShadow: string | undefined;
+              if (hoveredRange && i >= hoveredRange.start && i <= hoveredRange.end) {
+                const startsRow = i === hoveredRange.start || i % columnCount === 0;
+                const endsRow = i === hoveredRange.end || (i + 1) % columnCount === 0;
+                // Match the subtitle link color (text-gray-300 / text-slate-700).
+                const color = isDarkMode ? '#d1d5db' : '#334155';
+                const w = 2;
+                const edges = [
+                  `inset 0 ${w}px 0 0 ${color}`, // top
+                  `inset 0 -${w}px 0 0 ${color}`, // bottom
+                ];
+                if (startsRow) edges.push(`inset ${w}px 0 0 0 ${color}`); // left
+                if (endsRow) edges.push(`inset -${w}px 0 0 0 ${color}`); // right
+                boxShadow = edges.join(', ');
+              }
+
               return (
                 <a
                   key={`${tile.shortId}-${i}`}
@@ -190,8 +239,16 @@ export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps)
                     e.preventDefault();
                     onNavigate(`/?s=${tile.shortId}`);
                   }}
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  onMouseLeave={() => setHoveredIndex((prev) => (prev === i ? null : prev))}
                   title={titleAttr}
-                  style={{ width: tileSize, height: tileSize, display: 'block' }}
+                  style={{
+                    width: tileSize,
+                    height: tileSize,
+                    display: 'block',
+                    boxShadow,
+                    transition: 'box-shadow 0.1s',
+                  }}
                 >
                   <img
                     src={tile.url}
