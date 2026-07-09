@@ -14,8 +14,11 @@
 - `src/components/tabs/SafariTahoeLightTab.tsx`
 
 **Main Components:**
-- `src/App.tsx` - State management for uploads, themes, sharing
-- `src/components/ShareButton.tsx` - Share flow orchestration
+- `src/Router.tsx` - Top-level SPA router (`/` vs `/archive`); owns dark-mode state
+- `src/App.tsx` - State management for uploads, sharing (receives dark mode via props)
+- `src/components/Archive.tsx` - Public favicon archive page
+- `src/components/Footer.tsx` - Shared semantic footer with SPA nav
+- `src/components/ShareButton.tsx` - Share flow orchestration (incl. archive opt-in)
 - `src/components/DownloadAllButton.tsx` - Download all favicons as ZIP
 - `src/components/Tooltip.tsx` - Custom CSS tooltip component
 
@@ -23,7 +26,7 @@
 - `src/utils/imageCompression.ts` - Canvas-based image compression
 - `src/utils/firebaseUpload.ts` - Firebase Storage uploads
 - `src/utils/shareUrl.ts` - URL encoding/decoding (fallback for long URLs)
-- `src/utils/shortlink.ts` - Firestore shortlink operations (generate, create, load)
+- `src/utils/shortlink.ts` - Firestore shortlink operations (generate, create, load, fetch public archive)
 - `src/utils/zipDownload.ts` - Zip creation and download logic
 - `src/firebase.ts` - Firebase initialization (Storage + Firestore)
 - `src/types.ts` - TypeScript interfaces

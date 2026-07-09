@@ -1,0 +1,216 @@
+import { useState, useEffect } from 'react';
+import { ZoomIn, ZoomOut, Home } from 'lucide-react';
+import { Footer } from './Footer';
+import { Tooltip } from './Tooltip';
+import { fetchPublicArchive } from '../utils/shortlink';
+import type { ArchiveTile } from '../types';
+
+const ZOOM_LEVELS = [16, 32, 64, 128, 256];
+const DEFAULT_ZOOM_INDEX = 1; // 32px
+
+interface ArchiveProps {
+  isDarkMode: boolean;
+  onThemeToggle: () => void;
+  onNavigate: (path: string) => void;
+}
+
+function isTouchDevice(): boolean {
+  return typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+}
+
+export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps) {
+  const [tiles, setTiles] = useState<ArchiveTile[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [zoomIndex, setZoomIndex] = useState(DEFAULT_ZOOM_INDEX);
+  const tileSize = ZOOM_LEVELS[zoomIndex];
+  const isMobile = isTouchDevice();
+
+  useEffect(() => {
+    document.title = 'Favicon Archive — Favicon Preview';
+    const metaDesc = document.querySelector('meta[name="description"]');
+    const prevDesc = metaDesc?.getAttribute('content') ?? null;
+    metaDesc?.setAttribute(
+      'content',
+      'A public gallery and archive of favicons shared on faviconpreview.fyi'
+    );
+    return () => {
+      document.title = 'Favicon Preview';
+      if (metaDesc && prevDesc !== null) metaDesc.setAttribute('content', prevDesc);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchPublicArchive()
+      .then((result) => {
+        if (!cancelled) setTiles(result);
+      })
+      .catch((err) => {
+        console.error('Failed to load archive:', err);
+        if (!cancelled) setError("Couldn't load the favicon archive. Try again later.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const canZoomIn = zoomIndex < ZOOM_LEVELS.length - 1;
+  const canZoomOut = zoomIndex > 0;
+
+  const iconBtnClass = `p-2 rounded-lg transition-colors cursor-pointer ${
+    isDarkMode
+      ? 'bg-gray-700 hover:bg-gray-600 text-gray-100'
+      : 'bg-slate-300 hover:bg-slate-400 text-slate-900'
+  }`;
+
+  return (
+    <div
+      className={`min-h-screen flex flex-col transition-colors ${
+        isDarkMode
+          ? 'bg-gradient-to-br from-gray-900 to-gray-800'
+          : 'bg-gradient-to-br from-slate-100 to-slate-300'
+      }`}
+    >
+      <div className="p-6 md:p-8">
+        <div className="max-w-7xl mx-auto space-y-8 relative">
+          {/* Top-right controls: zoom out / px / zoom in / home / dark-light */}
+          <div className="absolute top-0 right-0 flex items-center gap-2">
+            <Tooltip content="Zoom out" position="bottom" className="hidden md:inline-flex">
+              <button
+                onClick={() => canZoomOut && setZoomIndex(zoomIndex - 1)}
+                disabled={!canZoomOut}
+                className={`${iconBtnClass} disabled:opacity-40 disabled:cursor-not-allowed`}
+                aria-label="Zoom out"
+              >
+                <ZoomOut size={20} />
+              </button>
+            </Tooltip>
+            <Tooltip content="Zoom in" position="bottom" className="hidden md:inline-flex">
+              <button
+                onClick={() => canZoomIn && setZoomIndex(zoomIndex + 1)}
+                disabled={!canZoomIn}
+                className={`${iconBtnClass} disabled:opacity-40 disabled:cursor-not-allowed`}
+                aria-label="Zoom in"
+              >
+                <ZoomIn size={20} />
+              </button>
+            </Tooltip>
+            <Tooltip content="Home" position="bottom" className="hidden md:inline-flex">
+              <button
+                onClick={() => onNavigate('/')}
+                className={iconBtnClass}
+                aria-label="Home"
+              >
+                <Home size={20} />
+              </button>
+            </Tooltip>
+            <button
+              onClick={onThemeToggle}
+              className={`p-2 rounded-lg transition-colors hidden md:block cursor-pointer ${
+                isDarkMode
+                  ? 'bg-gray-700 hover:bg-gray-600'
+                  : 'bg-slate-300 hover:bg-slate-400'
+              }`}
+              aria-label="Toggle dark mode"
+            >
+              {isDarkMode ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-yellow-400">
+                  <circle cx="12" cy="12" r="5" strokeWidth="2"/>
+                  <line x1="12" y1="1" x2="12" y2="3" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="12" y1="21" x2="12" y2="23" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="1" y1="12" x2="3" y2="12" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="21" y1="12" x2="23" y2="12" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-slate-700">
+                  <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </button>
+          </div>
+
+          {/* Centered header */}
+          <div className="text-center space-y-4">
+            <h1 className={`text-4xl font-bold transition-colors ${
+              isDarkMode ? 'text-gray-100' : 'text-slate-900'
+            }`}>
+              Favicon Archive
+            </h1>
+            <p className={`text-md md:text-lg transition-colors max-w-[640px] mx-auto ${
+              isDarkMode ? 'text-gray-400' : 'text-slate-600'
+            }`}>
+              Add your own favicons in the{' '}
+              <a
+                href="/"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onNavigate('/');
+                }}
+                className={`inline-block hover:underline ${
+                  isDarkMode ? 'text-gray-100' : 'text-slate-900'
+                }`}
+              >
+                favicon preview tool
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <main className="flex-1">
+        {error ? (
+          <div className={`px-6 md:px-8 py-8 ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+            {error}
+          </div>
+        ) : tiles === null ? (
+          <div className="flex justify-center items-center py-16">
+            <div className="animate-spin rounded-full h-10 w-10 border-3 border-gray-400 border-t-transparent" style={{ borderWidth: 3 }}></div>
+          </div>
+        ) : (
+          <div
+            className="grid"
+            style={{
+              gridTemplateColumns: `repeat(auto-fill, ${tileSize}px)`,
+              gridAutoRows: `${tileSize}px`,
+              gap: 0,
+              justifyContent: 'center',
+            }}
+          >
+            {tiles.map((tile, i) => {
+              const titleAttr = !isMobile && tile.title ? tile.title : undefined;
+              return (
+                <a
+                  key={`${tile.shortId}-${i}`}
+                  href={`/?s=${tile.shortId}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigate(`/?s=${tile.shortId}`);
+                  }}
+                  title={titleAttr}
+                  style={{ width: tileSize, height: tileSize, display: 'block' }}
+                >
+                  <img
+                    src={tile.url}
+                    alt={tile.title || ''}
+                    loading="lazy"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                </a>
+              );
+            })}
+          </div>
+        )}
+      </main>
+
+      <div className="px-6 md:px-8 pb-6">
+        <div className="max-w-7xl mx-auto">
+          <Footer isDarkMode={isDarkMode} onNavigate={onNavigate} onArchivePage />
+        </div>
+      </div>
+    </div>
+  );
+}

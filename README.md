@@ -21,10 +21,11 @@ A static web app for previewing favicons in realistic browser tab contexts. Uplo
 
 **Sharing & Export:**
 - Shareable shortlinks (e.g., `/?s=abc1234`) with uploaded favicons
+- Public favicon archive (`/archive`) — opt in when sharing to publish favicons to a browsable gallery
 - Client-side image compression (max 256×256—sufficient for favicons)
 - Firebase Storage hosting for shared images
 - Firestore Database for shortlink mappings
-- Download button for each favicon (compressed PNG)
+- Download button for each favicon (compressed PNG), plus download-all-as-ZIP
 - Error handling for expired/missing images
 
 ## Tech Stack
@@ -34,6 +35,7 @@ A static web app for previewing favicons in realistic browser tab contexts. Uplo
 - **Tailwind CSS** - Utility-first styling
 - **Radix UI** - Accessible primitives
 - **shadcn/ui** - Pre-built components
+- **lucide-react** - Icon set (archive/zoom/nav controls)
 - **Firebase Storage** - Image hosting for shareable links
 - **Firestore Database** - Shortlink storage
 
@@ -68,7 +70,7 @@ Firebase configuration is stored in `src/config/firebase.config.ts` and committe
 3. Enable Firestore: Build → Firestore Database → Create Database (production mode)
 4. Add web app: Project Settings → Your apps → Add app (Web)
 5. Copy firebaseConfig values to `src/config/firebase.config.ts`
-6. Deploy security rules: `firebase deploy --only storage,firestore`
+6. Deploy security rules and indexes: `firebase deploy --only storage,firestore` (this includes the composite index in `firestore.indexes.json` required by the public archive query; it must finish building before `/archive` returns results)
 
 **CORS Configuration (Required):**
 ```bash
@@ -87,13 +89,16 @@ firebase deploy
 ## Architecture
 
 ### Core Concept
-Client-side only, no backend. File processing happens entirely in the browser using the FileReader API.
+Client-side only, no backend. File processing happens entirely in the browser using the FileReader API. Routing is a lightweight SPA router (`Router.tsx`) over `history.pushState`; Firebase Hosting rewrites all app paths to `index.html` so deep links like `/archive` resolve.
 
 ### Component Structure
 
 **Main Components:**
-- `App.tsx` - Main orchestrator with state management for uploads, themes, and sharing
-- `ShareButton.tsx` - Handles share flow (compress → upload → generate URL)
+- `Router.tsx` - Top-level SPA router (`/` vs `/archive`); owns dark-mode state
+- `App.tsx` - Main orchestrator with state management for uploads and sharing (receives theme via props)
+- `Archive.tsx` - Public favicon archive/gallery page
+- `Footer.tsx` - Shared semantic footer with SPA cross-navigation
+- `ShareButton.tsx` - Handles share flow (compress → upload → generate URL), including the archive opt-in
 - `Tooltip.tsx` - Custom CSS-based tooltip component with instant appearance
 - Tab components (specialized per browser/theme):
   - `ChromeDarkTab.tsx` - Chrome dark theme tabs
@@ -126,6 +131,11 @@ Each row represents a browser context (e.g., "Chrome - Dark"). Within each row, 
 4. Shortlink created in Firestore with favicon URLs and theme color
 5. URL generated: `https://faviconpreview.fyi?s=abc1234`
 6. Recipients load shared URL, app fetches shortlink data and restores state
+
+**Public Archive:**
+- Sharing offers an optional "Add to Favicon Archive" action that sets `public: true` on the shortlink doc
+- `/archive` queries public shortlinks (`public == true`, newest first) and renders their favicons as a zoomable gallery, each linking back to its shared preview
+- Ownership is gated in the UI (the archive action is hidden when viewing someone else's shared link); public docs are broadcast to all visitors
 
 **Security:**
 - Firebase Storage with upload-only rules (clients cannot delete)

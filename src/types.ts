@@ -42,4 +42,13 @@ export interface ShortlinkDocument {
   version: number;
   createdAt: number;   // Timestamp
   closedDummyTabs?: number[];
+  public?: boolean;    // Opt-in to public archive
+}
+
+// Single tile in the public archive view
+export interface ArchiveTile {
+  shortId: string;
+  url: string;
+  title: string;
+  createdAt: number;
 }

@@ -304,6 +304,124 @@ This document tracks detailed version history, planned features, research findin
 - Cleanup script to remove all uploaded favicons and shortlinks in Firebase that are older than 6 months (ensure that loading previews with missing favicons/shortlinks fails gracefully)
 - Improve visual fidelity based on research/screenshots
 
+### v1.3 - Public Favicon Archive ✓
+
+1. **Share flow opt-in** ✓
+   - [x] `Add to Favicon Archive` secondary button beside the Share Preview button (shares publicly in one click)
+   - [x] Interactive (hoverable) disclosure tooltip on the button, with a link to `/archive`
+   - [x] Touch devices: first tap opens the tooltip and arms `Confirm Add to Archive`; second tap shares; tapping elsewhere disarms
+   - [x] Share Preview button tooltip explaining it creates a private link
+   - [x] Both buttons shown grayed out (with "Upload favicons to share them" tooltip) when no favicons are loaded
+   - [x] Success panel offers `Add to Favicon Archive` after a private share (creates a second, public shortlink doc reusing uploaded URLs — client updates are denied by rules); confirmation line links to the archive
+   - [x] Upload skip/cache: favicons already uploaded (previous share or loaded from a shared link) are never re-uploaded
+   - [x] Ownership gating: on someone else's shared preview the archive button is hidden; re-sharing your modified version makes it yours and the success panel then offers archiving
+   - [x] Checkbox state persisted as `public: true` on the shortlink doc
+   - [x] All-or-nothing per share
+
+2. **Archive view at `/archive`** ✓
+   - [x] SPA navigation between `/` and `/archive` via History API
+   - [x] Tiles wall-to-wall, no gaps, default 32px, zoom 16/32/64/128/256
+   - [x] Sort by `createdAt` desc (newest first)
+   - [x] Lazy-load Firestore query on archive nav (not on app load)
+   - [x] Click/tap tile → navigate to `/?s=<shortId>`
+   - [x] Desktop hover tooltip with filename, mobile tap-through only
+   - [x] Loading spinner and error state
+   - [x] Page title and meta description set on mount
+
+3. **Entry points** ✓
+   - [x] Landmark icon button next to dark/light toggle (desktop)
+   - [x] Footer link present on both `/` and `/archive`
+   - [x] Semantic `<footer>` element
+
+4. **Data & rules** ✓
+   - [x] Optional `public: boolean` on `ShortlinkDocument`
+   - [x] Firestore composite index `(public ASC, createdAt DESC)` in `firestore.indexes.json`
+   - [x] Security rules validate `public` is a bool when present
+   - [x] Filenames stripped of control chars when displayed
+
+**Files Created:**
+- `src/Router.tsx` - Top-level SPA router, lifts dark mode state
+- `src/components/Archive.tsx` - Archive page
+- `src/components/Footer.tsx` - Shared semantic footer
+- `firestore.indexes.json` - Firestore composite index config
+
+**Files Modified:**
+- `src/App.tsx` - Accepts router props; landmark icon button; uses Footer
+- `src/components/ShareButton.tsx` - `Add to Favicon Archive` secondary share button + tooltip
+- `src/utils/shortlink.ts` - `isPublic` param; `fetchPublicArchive`
+- `src/types.ts` - `public` field on `ShortlinkDocument`; `ArchiveTile`
+- `firestore.rules` - Accepts optional `public` bool
+- `firebase.json` - Registers indexes file
+
+### Public Favicon Archive
+
+A public gallery of favicons that users opt-in to share when creating a share link.
+
+**Share flow:**
+- Add an `Add to Favicon Archive` secondary button beside the Share Preview button. Clicking it performs the share and publishes it to the archive (`public: true`) in one action; `Share Preview` shares privately (and has its own tooltip saying so).
+- The archive button carries an interactive (hoverable) tooltip so the user can mouse into it and click the embedded link. Tooltip body: "Share your favicons with the world ✨ The archive is a public gallery: your favicons and any titles/filenames will be visible." — "The archive" links to `/archive`, opens in a new tab (preserves any in-progress state on the main page).
+- Touch devices have no hover to surface the disclosure, so the first tap opens the tooltip and turns the button into `Confirm Add to Archive`; the second tap shares. Tapping elsewhere disarms.
+- After a private share, the success panel still offers `Add to Favicon Archive`. Since Firestore rules deny client updates, this creates a second shortlink doc with `public: true`, reusing the already-uploaded image URLs (single doc write, no image re-upload). The originally displayed share URL is kept.
+- Upload dedupe: storage URLs are cached per favicon id; anything already uploaded (earlier share attempt, or favicons loaded from a shared link) is skipped on subsequent shares.
+- Ownership: on a shared preview you landed on via link, the archive button is hidden (can't publish someone else's favicons). Modifying and re-sharing creates your own shortlink, after which the success panel offers archiving.
+- Checkbox state is sent to `createShortlink` and persisted on the shortlink doc as a `public: true` flag. Reuse the existing `shortlinks` collection (no separate collection).
+- Opting in publishes **all** favicons in that shortlink — all-or-nothing per share.
+
+**Archive view:**
+- Route: `/archive` — SPA navigation (no full page reload), URL updates via History API. Back nav to `/` is also SPA.
+- Layout: favicons tiled wall-to-wall at a uniform size, touching each other, no gaps, filling the viewport.
+- Zoom control: cycles through tile sizes 16 / 32 / 64 / 128 / 256 px (zoom-in/zoom-out buttons). **Default 32px.**
+- Sort: newest first, by shortlink `createdAt`. Within a shortlink, favicons appear in their original upload order (whatever the array order in the doc already is — no extra sorting work).
+- No pagination for v1 — load all public docs. Revisit if/when volume warrants.
+- **Defer the query until the user actually navigates to `/archive`** — don't fetch on app load.
+- Tile interactions:
+  - Desktop hover: tooltip with the filename if any
+  - Mobile: no tooltip (would conflict with tap-through). Tap navigates directly.
+  - Click/tap: navigates to the source share preview (`/?s=<shortId>`). Intentional, not a leak.
+- `alt` text on each tile: filename if any
+- Loading state: reuse the existing spinner component (same one used during compression/share).
+- Error state: simple error message, e.g. "Couldn't load the favicon archive. Try again later."
+- No empty state needed — Toby will manually flip `public: true` on some existing shortlinks before launch so the archive has content from day one.
+- Entry points:
+  - Footer link: see below
+  - New icon button next to the dark/light mode toggle in the top right. Icon: `landmark` from lucide-react. Tooltip: "Favicon archive".
+- Page `<title>`: "Favicon Archive — Favicon Preview"
+- Meta description: "A public gallery and archive of favicons shared on faviconpreview.fyi"
+
+**Footer:**
+- The app currently whos "made by Toby Fox" and "Feedback?..." turn this into a semantic html footer
+- Add link to `/archive` ("Check out the [favicon archive]")
+- Footer present on both `/` and `/archive`.
+
+**Data model:**
+- Reuse `shortlinks` collection; add optional `public: boolean` field (absent = private, same as `false`).
+- Archive query: `shortlinks where public == true orderBy createdAt desc`.
+- Requires a Firestore composite index on `(public ASC, createdAt DESC)`. Add to `firestore.indexes.json` and deploy with `firebase deploy --only firestore:indexes`. Verify in the Firebase console that the index finishes building before the archive ships.
+- Each shortlink doc contributes all its favicons to the archive (flatten client-side after query).
+
+**Security rules:**
+- Add `public` to the create-time schema as an optional boolean. Keep `update: if false` so `public` cannot be flipped after creation by clients (only Toby via the Firebase console).
+- Verified: current rules already deny all client updates and deletes, so no further hardening needed beyond accepting the new field.
+- Public reads of shortlinks already permitted.
+
+**Free-tier monitoring:**
+- Firestore free tier: 50k reads/day, 20k writes/day, 1 GiB storage. On Blaze, overages bill at standard rates.
+- Set a GCP budget alert at $1/month with email notifications at 50/90/100% (see setup steps below).
+
+**Filename handling:**
+- Strip control characters only (no other sanitization for now).
+- No length cap beyond what already exists.
+
+**Explicitly out of scope for v1:**
+- Moderation (no queue, no auto-moderation, no admin removal scripts — Toby will flip `public: false` manually in the Firebase console for any takedown).
+- Cleanup of old favicons/shortlinks (the planned 6-month cleanup mentioned elsewhere in this doc is deferred indefinitely; revisit only if needed).
+- Per-favicon removal mechanism (takedowns handled at the shortlink level via the console).
+- Rate limiting.
+- Pagination / infinite scroll / limits
+- Attribution.
+- Hover scale-up or other tile interaction effects.
+- Archive-scale concerns (revisit if/when volume warrants).
+
 ## Research Findings
 
 ### Browser Tab Behavior

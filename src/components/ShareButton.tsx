@@ -5,26 +5,128 @@ import {
   hasFirebaseConfig,
 } from '../utils/firebaseUpload';
 import { createShortlink } from '../utils/shortlink';
+import { Tooltip } from './Tooltip';
 
 interface ShareButtonProps {
   uploadedFavicons: CompressedFavicon[];
   chromeColorTheme: string;
   isDarkMode: boolean;
   faviconsModified: boolean;
+  isSharedPreview: boolean;
   closedDummyTabIndices: number[];
   onShareSuccess: () => void;
 }
 
 type ShareState = 'idle' | 'uploading' | 'success' | 'error';
 
-export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, faviconsModified, closedDummyTabIndices, onShareSuccess }: ShareButtonProps) {
+// True when the primary input can't hover (e.g. phones/tablets). Don't use
+// touch-point detection here: desktop machines with touchscreens or certain
+// input drivers report touch support but still hover fine.
+function hasNoHover(): boolean {
+  return typeof window !== 'undefined' && !window.matchMedia('(hover: hover)').matches;
+}
+
+const ARCHIVE_TOOLTIP = (
+  <>
+    Share your favicons with the world ✨{' '}
+    <a
+      href="/archive"
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      className="underline hover:text-white"
+    >
+      The archive
+    </a>{' '}
+    is a public gallery: your favicons and any titles/filenames will be visible.
+  </>
+);
+
+interface ArchiveButtonProps {
+  isDarkMode: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
+  onArchive: () => void;
+}
+
+// Secondary "Add to Favicon Archive" button. When the primary input can't
+// hover (no way to surface the disclosure tooltip), the first tap opens the
+// tooltip and arms the button as "Confirm Add to Archive"; the second tap shares.
+function ArchiveButton({ isDarkMode, disabled, disabledReason, onArchive }: ArchiveButtonProps) {
+  const [armed, setArmed] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const noHover = hasNoHover();
+
+  // Tapping anywhere else disarms the confirm state
+  useEffect(() => {
+    if (!armed) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setArmed(false);
+      }
+    };
+    document.addEventListener('click', onDocClick);
+    return () => document.removeEventListener('click', onDocClick);
+  }, [armed]);
+
+  const handleClick = () => {
+    if (disabled) return;
+    if (noHover && !armed) {
+      setArmed(true);
+      return;
+    }
+    setArmed(false);
+    onArchive();
+  };
+
+  return (
+    <div ref={wrapperRef} className="inline-flex">
+      <Tooltip
+        wide={!disabled}
+        interactive
+        open={noHover ? armed : undefined}
+        content={disabled ? disabledReason : ARCHIVE_TOOLTIP}
+      >
+        <button
+          onClick={handleClick}
+          disabled={disabled}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            disabled
+              ? isDarkMode
+                ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                : 'bg-gray-300 text-slate-500 cursor-not-allowed'
+              : isDarkMode
+              ? 'bg-gray-700 hover:bg-gray-600 text-gray-100'
+              : 'bg-slate-200 hover:bg-slate-300 text-slate-900'
+          }`}
+        >
+          {armed ? 'Confirm Add to Archive' : 'Add to Favicon Archive'}
+        </button>
+      </Tooltip>
+    </div>
+  );
+}
+
+export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, faviconsModified, isSharedPreview, closedDummyTabIndices, onShareSuccess }: ShareButtonProps) {
   const [shareState, setShareState] = useState<ShareState>('idle');
   const [shareUrl, setShareUrl] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState({ completed: 0, total: 0 });
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [partialFailures, setPartialFailures] = useState<Array<{ id: string; error: string }>>([]);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [isArchived, setIsArchived] = useState(false);
+  const [archiveSaveState, setArchiveSaveState] = useState<'idle' | 'saving' | 'error'>('idle');
   const linkCopiedTimeoutRef = useRef<number | null>(null);
+  const isPublicRef = useRef(false);
+  // Storage URLs from previous uploads, keyed by favicon id, so sharing again
+  // (or archiving after sharing) never re-uploads the same image
+  const uploadCacheRef = useRef<Map<string, string>>(new Map());
+  // Snapshot of what the current shortlink contains, for archiving it afterwards
+  const sharedSnapshotRef = useRef<{
+    favicons: CompressedFavicon[];
+    color: string;
+    closedDummyTabs: number[];
+  } | null>(null);
 
   const hasCredentials = hasFirebaseConfig();
   const canShare = uploadedFavicons.length > 0 && hasCredentials;
@@ -41,8 +143,9 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
     };
   }, []);
 
-  const handleShare = async () => {
+  const handleShare = async (isPublic: boolean) => {
     if (!canShare) return;
+    isPublicRef.current = isPublic;
 
     setShareState('uploading');
     setErrorMessage('');
@@ -55,29 +158,32 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
     }
 
     try {
-      // Upload images to Firebase Storage
-      const imagesToUpload = uploadedFavicons.map((favicon) => ({
-        id: favicon.id,
-        compressedDataUrl: favicon.compressedDataUrl || favicon.dataUrl,
-        fileName: `${favicon.title}.png`,
-      }));
+      // Upload images to Firebase Storage, skipping favicons that already
+      // have a storage URL (loaded from a shared link or uploaded previously)
+      const cache = uploadCacheRef.current;
+      const imagesToUpload = uploadedFavicons
+        .filter((favicon) => !favicon.uploadedImageUrl && !cache.has(favicon.id))
+        .map((favicon) => ({
+          id: favicon.id,
+          compressedDataUrl: favicon.compressedDataUrl || favicon.dataUrl,
+          fileName: `${favicon.title}.png`,
+        }));
 
       setUploadProgress({ completed: 0, total: imagesToUpload.length });
 
-      const uploadResults = await uploadMultipleToFirebase(imagesToUpload);
+      const uploadResults = imagesToUpload.length > 0
+        ? await uploadMultipleToFirebase(imagesToUpload)
+        : [];
 
       // Update progress as complete
       setUploadProgress({ completed: imagesToUpload.length, total: imagesToUpload.length });
 
+      uploadResults.forEach((result) => {
+        if (result.url) cache.set(result.id, result.url);
+      });
+
       // Check for failures
       const failures = uploadResults.filter((result) => result.error !== null);
-      const successes = uploadResults.filter((result) => !!result.url);
-
-      if (successes.length === 0) {
-        setErrorMessage('All uploads failed. Please check your network connection and try again.');
-        setShareState('error');
-        return;
-      }
 
       if (failures.length > 0) {
         setPartialFailures(
@@ -88,17 +194,20 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
         );
       }
 
-      // Update favicons with uploaded URLs for shortlink creation
-      const uploadedFaviconsWithUrls = uploadedFavicons.map(f => {
-        const uploadResult = uploadResults.find(r => r.id === f.id);
-        return {
-          ...f,
-          uploadedImageUrl: uploadResult?.url || undefined
-        };
-      }).filter(f => f.uploadedImageUrl); // Only include successfully uploaded favicons
+      // Resolve favicons to their storage URLs for shortlink creation
+      const uploadedFaviconsWithUrls = uploadedFavicons.map(f => ({
+        ...f,
+        uploadedImageUrl: f.uploadedImageUrl || cache.get(f.id)
+      })).filter(f => f.uploadedImageUrl); // Only include favicons with a storage URL
+
+      if (uploadedFaviconsWithUrls.length === 0) {
+        setErrorMessage('All uploads failed. Please check your network connection and try again.');
+        setShareState('error');
+        return;
+      }
 
       // Create shortlink
-      const shortId = await createShortlink(uploadedFaviconsWithUrls, chromeColorTheme, closedDummyTabIndices);
+      const shortId = await createShortlink(uploadedFaviconsWithUrls, chromeColorTheme, closedDummyTabIndices, isPublic);
 
       if (!shortId) {
         setErrorMessage('Failed to create share link. Please try again.');
@@ -106,8 +215,15 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
         return;
       }
 
+      sharedSnapshotRef.current = {
+        favicons: uploadedFaviconsWithUrls,
+        color: chromeColorTheme,
+        closedDummyTabs: closedDummyTabIndices,
+      };
       const url = `${window.location.origin}/?s=${shortId}`;
       setShareUrl(url);
+      setIsArchived(isPublic);
+      setArchiveSaveState('idle');
       setShareState('success');
       onShareSuccess();
     } catch (error) {
@@ -142,11 +258,28 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
     }
   };
 
+  // Archive an already-shared preview. Client updates are denied by Firestore
+  // rules, so this creates a second, public shortlink doc reusing the
+  // already-uploaded image URLs (no image re-upload).
+  const handleArchiveExisting = async () => {
+    const snapshot = sharedSnapshotRef.current;
+    if (!snapshot) return;
+
+    setArchiveSaveState('saving');
+    const shortId = await createShortlink(snapshot.favicons, snapshot.color, snapshot.closedDummyTabs, true);
+    if (shortId) {
+      setIsArchived(true);
+      setArchiveSaveState('idle');
+    } else {
+      setArchiveSaveState('error');
+    }
+  };
+
   const handleRetry = () => {
     setShareState('idle');
     setErrorMessage('');
     setPartialFailures([]);
-    handleShare();
+    handleShare(isPublicRef.current);
   };
 
   if (!hasCredentials) {
@@ -162,23 +295,43 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
 
   return (
     <div className="space-y-3">
-      {/* Share Button */}
+      {/* Share Buttons */}
       {shareState === 'idle' && (
-        <button
-          onClick={handleShare}
-          disabled={!canShare}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            canShare
-              ? isDarkMode
-                ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                : 'bg-blue-500 hover:bg-blue-600 text-white'
-              : isDarkMode
-              ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-              : 'bg-gray-300 text-slate-500 cursor-not-allowed'
-          }`}
-        >
-          Share Preview
-        </button>
+        <div className="flex items-center justify-center gap-3">
+          <Tooltip
+            wide={canShare}
+            content={canShare
+              ? 'Create a private link to this preview that you can share, visible only to people with the link.'
+              : 'Upload favicons to share them'}
+          >
+            <button
+              onClick={() => handleShare(false)}
+              disabled={!canShare}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                canShare
+                  ? isDarkMode
+                    ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  : isDarkMode
+                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                  : 'bg-gray-300 text-slate-500 cursor-not-allowed'
+              }`}
+            >
+              Share Preview
+            </button>
+          </Tooltip>
+          {/* Landed on someone else's shared preview: don't offer to archive
+              favicons that aren't yours. Sharing your own version first makes
+              it yours (archive option appears in the success panel). */}
+          {!isSharedPreview && (
+            <ArchiveButton
+              isDarkMode={isDarkMode}
+              disabled={!canShare}
+              disabledReason="Upload favicons to share them"
+              onArchive={() => handleShare(true)}
+            />
+          )}
+        </div>
       )}
 
       {/* Uploading State */}
@@ -187,7 +340,9 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
           <div className={`flex items-center gap-2 ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent"></div>
             <span>
-              Uploading {uploadProgress.completed}/{uploadProgress.total}...
+              {uploadProgress.total > 0
+                ? `Uploading ${uploadProgress.completed}/${uploadProgress.total}...`
+                : 'Creating share link...'}
             </span>
           </div>
         </div>
@@ -250,6 +405,43 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
             </div>
           )}
 
+          {/* Archive status: confirmation if archived, otherwise offer to archive */}
+          {isArchived ? (
+            <div className={`flex items-center gap-1.5 text-sm font-medium ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span>
+                Added to the Favicon Archive —{' '}
+                <a
+                  href="/archive"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  view it
+                </a>
+              </span>
+            </div>
+          ) : archiveSaveState === 'saving' ? (
+            <div className={`flex items-center gap-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-slate-700'}`}>
+              <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-400 border-t-transparent"></div>
+              <span>Adding to archive...</span>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              <ArchiveButton
+                isDarkMode={isDarkMode}
+                onArchive={handleArchiveExisting}
+              />
+              {archiveSaveState === 'error' && (
+                <p className={`text-xs ${isDarkMode ? 'text-red-400' : 'text-red-600'}`}>
+                  Failed to add to the archive. Please try again.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Create New Link - Only show if favicons changed */}
           {faviconsChanged && (
             <div className={`flex items-start gap-2 p-3 rounded-lg ${
@@ -273,6 +465,8 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
                     setShareUrl('');
                     setPartialFailures([]);
                     setLinkCopied(false);
+                    setIsArchived(false);
+                    setArchiveSaveState('idle');
                   }}
                   className={`mt-2 text-sm font-medium underline ${isDarkMode ? 'text-blue-400 hover:text-blue-300' : 'text-blue-700 hover:text-blue-800'}`}
                 >

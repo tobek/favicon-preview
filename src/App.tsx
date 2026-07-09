@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { Landmark } from 'lucide-react';
 import {
   ChromeDarkTab,
   ChromeLightTab,
@@ -8,6 +9,7 @@ import {
 } from './components/tabs/index.ts';
 import type { CompressedFavicon } from './types.ts';
 import { Tooltip } from './components/Tooltip';
+import { Footer } from './components/Footer';
 import { compressImage } from './utils/imageCompression';
 import { ShareButton } from './components/ShareButton';
 import { DownloadAllButton } from './components/DownloadAllButton';
@@ -138,10 +140,14 @@ function mergeFavicons(
   return result;
 }
 
-function App() {
+interface AppProps {
+  isDarkMode: boolean;
+  onThemeToggle: () => void;
+  onNavigate: (path: string) => void;
+}
+
+function App({ isDarkMode, onThemeToggle, onNavigate }: AppProps) {
   const [isCollapsed, setIsCollapsed] = useState(getInitialCollapsedState);
-  // body class is set in index.html
-  const [isDarkMode, setIsDarkMode] = useState(document.body.classList.contains('dark'));
   const [chromeColorTheme, setChromeColorTheme] = useState('#4a2b50');
   const [activeTabIndex, setActiveTabIndex] = useState(1); // 2nd tab is initially active
   const [uploadedFavicons, setUploadedFavicons] = useState<CompressedFavicon[]>([]);
@@ -501,39 +507,12 @@ function App() {
     }
   }, []);
 
-  // Sync body class with dark mode state
-  useEffect(() => {
-    if (isDarkMode) {
-      document.body.classList.remove('light');
-      document.body.classList.add('dark');
-    } else {
-      document.body.classList.remove('dark');
-      document.body.classList.add('light');
-    }
-  }, [isDarkMode]);
-
   // Handle tab selection
   const handleTabClick = (index: number) => {
     setActiveTabIndex(index);
     const tab = allTabs[index];
     if (tab) {
       previewFaviconInTab(tab.icon, tab.id);
-    }
-  };
-
-  // Handle theme toggle and save preference
-  const handleThemeToggle = () => {
-    const newTheme = !isDarkMode;
-    setIsDarkMode(newTheme);
-
-    // Save preference to localStorage with timestamp
-    try {
-      localStorage.setItem('theme-preference', JSON.stringify({
-        theme: newTheme ? 'dark' : 'light',
-        timestamp: Date.now()
-      }));
-    } catch {
-      // Ignore localStorage errors
     }
   };
 
@@ -659,10 +638,24 @@ function App() {
       )}
 
       <div className="max-w-7xl mx-auto space-y-8 relative">
-        {/* Dark/Light Mode Toggle - Top Right */}
+        {/* Top-right buttons: Archive + Dark/Light Mode */}
+        <div className="absolute top-0 right-0 flex items-center gap-2">
+          <Tooltip content="Favicon Archive" position="bottom" className="hidden md:inline-flex">
+            <button
+              onClick={() => onNavigate('/archive')}
+              className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                isDarkMode
+                  ? 'bg-gray-700 hover:bg-gray-600 text-gray-100'
+                  : 'bg-slate-300 hover:bg-slate-400 text-slate-900'
+              }`}
+              aria-label="Favicon Archive"
+            >
+              <Landmark size={20} />
+            </button>
+          </Tooltip>
         <button
-          onClick={handleThemeToggle}
-          className={`absolute top-0 right-0 p-2 rounded-lg transition-colors hidden md:block cursor-pointer ${
+          onClick={onThemeToggle}
+          className={`p-2 rounded-lg transition-colors hidden md:block cursor-pointer ${
             isDarkMode
               ? 'bg-gray-700 hover:bg-gray-600'
               : 'bg-slate-300 hover:bg-slate-400'
@@ -689,6 +682,7 @@ function App() {
             </svg>
           )}
         </button>
+        </div>
 
         {/* Header */}
         <div className="text-center space-y-4">
@@ -697,10 +691,22 @@ function App() {
           }`}>
             Favicon Preview
           </h1>
-          <p className={`text-md md:text-lg transition-colors -mb-3 md:mb-0 ${
+          <p className={`text-md md:text-lg transition-colors -mb-3 md:mb-0 max-w-[640px] mx-auto ${
             isDarkMode ? 'text-gray-400' : 'text-slate-600'
           }`}>
-            Preview and share how your favicons will look across browser tab themes
+            Preview and share how your favicons will look across browser tab themes, or{' '}
+            <a
+              href="/archive"
+              onClick={(e) => {
+                e.preventDefault();
+                onNavigate('/archive');
+              }}
+              className={`inline-block hover:underline ${
+                isDarkMode ? 'text-gray-100' : 'text-slate-900'
+              }`}
+            >
+              browse the archive
+            </a>
           </p>
         </div>
 
@@ -928,35 +934,18 @@ function App() {
         {/* Hide if this is a shared preview and nothing has been modified, or if isLoadingShared */}
         {!(isSharedPreview && !faviconsModified) && !isLoadingShared && (
           <div className="flex justify-center">
-            {uploadedFavicons.length === 0 ? (
-              <Tooltip content="Upload favicons to share them">
-                <div>
-                  <ShareButton
-                    uploadedFavicons={uploadedFavicons}
-                    chromeColorTheme={chromeColorTheme}
-                    isDarkMode={isDarkMode}
-                    faviconsModified={faviconsModified}
-                    closedDummyTabIndices={closedDummyTabIndices}
-                    onShareSuccess={() => {
-                      setFaviconsModified(false);
-                      setIsSharedPreview(false);
-                    }}
-                  />
-                </div>
-              </Tooltip>
-            ) : (
-              <ShareButton
-                uploadedFavicons={uploadedFavicons}
-                chromeColorTheme={chromeColorTheme}
-                isDarkMode={isDarkMode}
-                faviconsModified={faviconsModified}
-                closedDummyTabIndices={closedDummyTabIndices}
-                onShareSuccess={() => {
-                  setFaviconsModified(false);
-                  setIsSharedPreview(false);
-                }}
-              />
-            )}
+            <ShareButton
+              uploadedFavicons={uploadedFavicons}
+              chromeColorTheme={chromeColorTheme}
+              isDarkMode={isDarkMode}
+              faviconsModified={faviconsModified}
+              isSharedPreview={isSharedPreview}
+              closedDummyTabIndices={closedDummyTabIndices}
+              onShareSuccess={() => {
+                setFaviconsModified(false);
+                setIsSharedPreview(false);
+              }}
+            />
           </div>
         )}
 
@@ -969,7 +958,7 @@ function App() {
                 type="checkbox"
                 checked={isCollapsed}
                 onChange={(e) => setIsCollapsed(e.target.checked)}
-                className="w-4 h-4 rounded"
+                className="w-4 h-4 rounded cursor-pointer"
               />
               <span className={`text-sm font-medium transition-colors ${
                 isDarkMode ? 'text-gray-300' : 'text-slate-700'
@@ -1132,39 +1121,7 @@ function App() {
         </div>
         </div>
 
-        {/* Footer */}
-        <div className="text-center mt-8 md:mt-16 space-y-1">
-          <p className={`text-sm transition-colors ${
-            isDarkMode ? 'text-gray-500' : 'text-slate-400'
-          }`}>
-            Made by{' '}
-            <a
-              href="https://tobyfox.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`hover:underline ${
-                isDarkMode ? 'text-gray-400' : 'text-slate-500'
-              }`}
-            >
-              Toby Fox
-            </a>
-          </p>
-          <p className={`text-sm transition-colors ${
-            isDarkMode ? 'text-gray-500' : 'text-slate-400'
-          }`}>
-            Feedback?{' '}
-            <a
-              href="https://github.com/tobek/favicon-preview"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`hover:underline ${
-                isDarkMode ? 'text-gray-400' : 'text-slate-500'
-              }`}
-            >
-              Open an issue on GitHub
-            </a>
-          </p>
-        </div>
+        <Footer isDarkMode={isDarkMode} onNavigate={onNavigate} />
       </div>
     </div>
   );

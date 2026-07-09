@@ -13,7 +13,8 @@ service cloud.firestore {
                     && request.resource.data.color is string
                     && request.resource.data.color.size() == 6      // Hex color
                     && request.resource.data.version is int
-                    && request.resource.data.createdAt is number;
+                    && request.resource.data.createdAt is number
+                    && (!('public' in request.resource.data) || request.resource.data.public is bool);
 
       // No updates or deletes from clients
       allow update, delete: if false;
