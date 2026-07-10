@@ -360,7 +360,7 @@ A public gallery of favicons that users opt-in to share when creating a share li
 
 **Share flow:**
 - Add an `Add to Favicon Archive` secondary button beside the Share Preview button. Clicking it performs the share and publishes it to the archive (`public: true`) in one action; `Share Preview` shares privately (and has its own tooltip saying so).
-- The archive button carries an interactive (hoverable) tooltip so the user can mouse into it and click the embedded link. Tooltip body: "Share your favicons with the world ✨ The archive is a public gallery: your favicons and any titles/filenames will be visible." — "The archive" links to `/archive`, opens in a new tab (preserves any in-progress state on the main page).
+- The archive button carries an interactive (hoverable) tooltip so the user can mouse into it and click the embedded link. Tooltip body: "Share your favicons with the world 🌌 The archive is a public gallery: your favicons and any titles/filenames will be visible." — "The archive" links to `/archive`.
 - Touch devices have no hover to surface the disclosure, so the first tap opens the tooltip and turns the button into `Confirm Add to Archive`; the second tap shares. Tapping elsewhere disarms.
 - After a private share, the success panel still offers `Add to Favicon Archive`. Since Firestore rules deny client updates, this creates a second shortlink doc with `public: true`, reusing the already-uploaded image URLs (single doc write, no image re-upload). The originally displayed share URL is kept.
 - Upload dedupe: storage URLs are cached per favicon id; anything already uploaded (earlier share attempt, or favicons loaded from a shared link) is skipped on subsequent shares.
@@ -422,6 +422,21 @@ A public gallery of favicons that users opt-in to share when creating a share li
 - Attribution.
 - Hover scale-up or other tile interaction effects.
 - Archive-scale concerns (revisit if/when volume warrants).
+
+### v1.4 - Draft Auto-Save & Recovery ✓
+
+1. **Persist working state to localStorage** ✓
+   - [x] Auto-saves the working set (uploaded favicons, chrome color theme, closed dummy tabs, active tab) to `localStorage` (key `favicon-preview-draft`) whenever it changes
+   - [x] Restores the draft on load so navigating away (incl. to `/archive`) and back, reloading, or reopening recovers your work — no leave/close warning dialogs needed
+   - [x] Restore previews the active favicon in the real browser tab (stops the favicon cycling), matching the post-upload behavior
+   - [x] Never persists or restores when a `?s=` share link is present, so viewing someone's shared preview can't overwrite your own draft; landing on `?s=` still loads from the shortlink as before
+   - [x] Skips the initial mount write so restore isn't clobbered; clears the stored draft when favicons are emptied (e.g. "Clear all")
+   - [x] Writes are best-effort in a try/catch — quota errors (very large images) degrade silently, matching the existing theme-persistence pattern
+
+**Design note:** Chosen over a `beforeunload` / `window.confirm` "are you sure you want to leave" prompt — auto-recovery means work is never lost without interrupting the user.
+
+**Files Modified:**
+- `src/App.tsx` - localStorage draft persist effect + restore-on-mount
 
 ## Research Findings
 

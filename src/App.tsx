@@ -29,6 +29,16 @@ const FAV_PREV_FAVICONS = Array.from({ length: 16 }, (_, i) =>
   `/favicons/fav${String(i + 1).padStart(2, '0')}.png`
 );
 
+// localStorage key for auto-saved working draft (uploads not yet shared/archived)
+const DRAFT_STORAGE_KEY = 'favicon-preview-draft';
+
+interface SavedDraft {
+  uploadedFavicons: CompressedFavicon[];
+  chromeColorTheme: string;
+  closedDummyTabIndices: number[];
+  activeTabIndex: number;
+}
+
 // Detect initial collapsed state based on viewport width
 function getInitialCollapsedState(): boolean {
   return window.innerWidth < 500;
@@ -163,6 +173,7 @@ function App({ isDarkMode, onThemeToggle, onNavigate }: AppProps) {
   const [closedDummyTabIndices, setClosedDummyTabIndices] = useState<number[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragCounterRef = useRef(0);
+  const skipFirstDraftSave = useRef(true);
 
   // Merge uploaded favicons with dummy tabs
   const allTabs = mergeFavicons(DUMMY_TABS, uploadedFavicons, closedDummyTabIndices);
@@ -213,11 +224,43 @@ function App({ isDarkMode, onThemeToggle, onNavigate }: AppProps) {
 
   // Load shared state from URL on mount
   useEffect(() => {
+    const restoreDraft = () => {
+      let draft: SavedDraft | null = null;
+      try {
+        const raw = localStorage.getItem(DRAFT_STORAGE_KEY);
+        draft = raw ? (JSON.parse(raw) as SavedDraft) : null;
+      } catch {
+        return;
+      }
+      if (!draft || !Array.isArray(draft.uploadedFavicons) || draft.uploadedFavicons.length === 0) {
+        return;
+      }
+
+      setUploadedFavicons(draft.uploadedFavicons);
+      if (typeof draft.chromeColorTheme === 'string') {
+        setChromeColorTheme(draft.chromeColorTheme);
+      }
+      if (Array.isArray(draft.closedDummyTabIndices)) {
+        setClosedDummyTabIndices(draft.closedDummyTabIndices);
+      }
+
+      // Clamp the restored active tab to the uploaded favicons and preview it
+      const activeIndex = Math.min(
+        Math.max(draft.activeTabIndex ?? 0, 0),
+        draft.uploadedFavicons.length - 1
+      );
+      setActiveTabIndex(activeIndex);
+      const activeFavicon = draft.uploadedFavicons[activeIndex];
+      previewFaviconInTab(activeFavicon.dataUrl, activeFavicon.id);
+    };
+
     const loadSharedState = async () => {
       const params = new URLSearchParams(window.location.search);
       const shortId = params.get('s');
 
       if (!shortId) {
+        // No share link — restore any auto-saved local draft
+        restoreDraft();
         setIsLoadingShared(false);
         return;
       }
@@ -303,6 +346,33 @@ function App({ isDarkMode, onThemeToggle, onNavigate }: AppProps) {
     loadSharedState();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Auto-save the working draft to localStorage so work survives navigation/reload.
+  // Skips the initial mount (so restore isn't clobbered) and any shared-preview URL
+  // (so viewing someone's share never overwrites your own draft).
+  useEffect(() => {
+    if (skipFirstDraftSave.current) {
+      skipFirstDraftSave.current = false;
+      return;
+    }
+    if (hasShareParams()) return;
+
+    try {
+      if (uploadedFavicons.length === 0) {
+        localStorage.removeItem(DRAFT_STORAGE_KEY);
+        return;
+      }
+      const draft: SavedDraft = {
+        uploadedFavicons,
+        chromeColorTheme,
+        closedDummyTabIndices,
+        activeTabIndex,
+      };
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(draft));
+    } catch {
+      // Best-effort: ignore quota/serialization errors (e.g. very large images)
+    }
+  }, [uploadedFavicons, chromeColorTheme, closedDummyTabIndices, activeTabIndex]);
 
   // Helper to check if file is a valid image format
   const isValidImageFile = (file: File): boolean => {

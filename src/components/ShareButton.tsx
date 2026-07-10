@@ -28,10 +28,9 @@ function hasNoHover(): boolean {
 
 const ARCHIVE_TOOLTIP = (
   <>
-    Share your favicons with the world ✨{' '}
+    Share your favicons with the world 🌌{' '}
     <a
       href="/archive"
-      target="_blank"
       rel="noopener noreferrer"
       onClick={(e) => e.stopPropagation()}
       className="underline hover:text-white"
