@@ -20,7 +20,7 @@
 - `src/components/Footer.tsx` - Shared semantic footer with SPA nav
 - `src/components/ShareButton.tsx` - Share flow orchestration (incl. archive opt-in)
 - `src/components/DownloadAllButton.tsx` - Download all favicons as ZIP
-- `src/components/Tooltip.tsx` - Custom CSS tooltip component
+- `src/components/Tooltip.tsx` - Tooltip component (Floating UI) with viewport-aware positioning (flip/shift)
 
 **Utilities:**
 - `src/utils/imageCompression.ts` - Canvas-based image compression

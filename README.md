@@ -99,7 +99,7 @@ Client-side only, no backend. File processing happens entirely in the browser us
 - `Archive.tsx` - Public favicon archive/gallery page
 - `Footer.tsx` - Shared semantic footer with SPA cross-navigation
 - `ShareButton.tsx` - Handles share flow (compress → upload → generate URL), including the archive opt-in
-- `Tooltip.tsx` - Custom CSS-based tooltip component with instant appearance
+- `Tooltip.tsx` - Tooltip component (Floating UI) with viewport-aware positioning (flip/shift) and 150ms fade
 - Tab components (specialized per browser/theme):
   - `ChromeDarkTab.tsx` - Chrome dark theme tabs
   - `ChromeLightTab.tsx` - Chrome light theme tabs

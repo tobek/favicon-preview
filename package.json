@@ -11,6 +11,7 @@
     "list-shortlinks": "tsx scripts/list-shortlinks.ts"
   },
   "dependencies": {
+    "@floating-ui/react": "^0.27.19",
     "@tailwindcss/vite": "^4.1.18",
     "@types/jszip": "^3.4.0",
     "firebase": "^12.7.0",

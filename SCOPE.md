@@ -438,6 +438,19 @@ A public gallery of favicons that users opt-in to share when creating a share li
 **Files Modified:**
 - `src/App.tsx` - localStorage draft persist effect + restore-on-mount
 
+### v1.5 - Robust Tooltip Positioning ✓
+
+1. **Migrate `Tooltip` to Floating UI** ✓
+   - [x] Replaced the pure-CSS absolute positioning (`left-1/2 -translate-x-1/2`) with [`@floating-ui/react`](https://floating-ui.com/), the maintained successor to Popper
+   - [x] Fixes archive tooltips rendering offscreen on edge tiles: `shift()` slides the bubble back into the viewport and `flip()` swaps top↔bottom when there's no room
+   - [x] Renders into a `FloatingPortal` so the bubble escapes any overflow/clipping, with `FloatingArrow` for the pointer
+   - [x] Same public props (`content`, `position`, `open`, `wide`, `interactive`) so all call sites are unchanged; controlled tooltips still pass `open`, uncontrolled ones now open via `useHover`/`useFocus` (with `safePolygon` bridging for `interactive` tooltips) — standardizing hover behavior app-wide
+   - [x] Preserves the existing look: slate-700 bubble, 150ms fade (`useTransitionStyles`), ~10px offset
+
+**Files Modified:**
+- `src/components/Tooltip.tsx` - rewritten on Floating UI
+- `package.json` - added `@floating-ui/react` dependency
+
 ## Research Findings
 
 ### Browser Tab Behavior
