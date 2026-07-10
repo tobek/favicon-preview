@@ -4,7 +4,7 @@ import {
   uploadMultipleToFirebase,
   hasFirebaseConfig,
 } from '../utils/firebaseUpload';
-import { createShortlink } from '../utils/shortlink';
+import { createShortlink, setShortlinkPublic } from '../utils/shortlink';
 import { Tooltip } from './Tooltip';
 
 interface ShareButtonProps {
@@ -120,12 +120,8 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
   // Storage URLs from previous uploads, keyed by favicon id, so sharing again
   // (or archiving after sharing) never re-uploads the same image
   const uploadCacheRef = useRef<Map<string, string>>(new Map());
-  // Snapshot of what the current shortlink contains, for archiving it afterwards
-  const sharedSnapshotRef = useRef<{
-    favicons: CompressedFavicon[];
-    color: string;
-    closedDummyTabs: number[];
-  } | null>(null);
+  // ID of the current shortlink, so archiving afterwards flips it to public
+  const sharedShortIdRef = useRef<string | null>(null);
 
   const hasCredentials = hasFirebaseConfig();
   const canShare = uploadedFavicons.length > 0 && hasCredentials;
@@ -214,11 +210,7 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
         return;
       }
 
-      sharedSnapshotRef.current = {
-        favicons: uploadedFaviconsWithUrls,
-        color: chromeColorTheme,
-        closedDummyTabs: closedDummyTabIndices,
-      };
+      sharedShortIdRef.current = shortId;
       const url = `${window.location.origin}/?s=${shortId}`;
       setShareUrl(url);
       setIsArchived(isPublic);
@@ -257,16 +249,15 @@ export function ShareButton({ uploadedFavicons, chromeColorTheme, isDarkMode, fa
     }
   };
 
-  // Archive an already-shared preview. Client updates are denied by Firestore
-  // rules, so this creates a second, public shortlink doc reusing the
-  // already-uploaded image URLs (no image re-upload).
+  // Archive an already-shared preview by flipping the existing shortlink to
+  // public, rather than creating a duplicate doc.
   const handleArchiveExisting = async () => {
-    const snapshot = sharedSnapshotRef.current;
-    if (!snapshot) return;
+    const shortId = sharedShortIdRef.current;
+    if (!shortId) return;
 
     setArchiveSaveState('saving');
-    const shortId = await createShortlink(snapshot.favicons, snapshot.color, snapshot.closedDummyTabs, true);
-    if (shortId) {
+    const ok = await setShortlinkPublic(shortId);
+    if (ok) {
       setIsArchived(true);
       setArchiveSaveState('idle');
     } else {

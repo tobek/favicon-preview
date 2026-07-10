@@ -312,7 +312,7 @@ This document tracks detailed version history, planned features, research findin
    - [x] Touch devices: first tap opens the tooltip and arms `Confirm Add to Archive`; second tap shares; tapping elsewhere disarms
    - [x] Share Preview button tooltip explaining it creates a private link
    - [x] Both buttons shown grayed out (with "Upload favicons to share them" tooltip) when no favicons are loaded
-   - [x] Success panel offers `Add to Favicon Archive` after a private share (creates a second, public shortlink doc reusing uploaded URLs — client updates are denied by rules); confirmation line links to the archive
+   - [x] Success panel offers `Add to Favicon Archive` after a private share (flips the existing shortlink's `public` flag in place via a narrow rules-permitted update — no duplicate doc); confirmation line links to the archive
    - [x] Upload skip/cache: favicons already uploaded (previous share or loaded from a shared link) are never re-uploaded
    - [x] Ownership gating: on someone else's shared preview the archive button is hidden; re-sharing your modified version makes it yours and the success panel then offers archiving
    - [x] Checkbox state persisted as `public: true` on the shortlink doc

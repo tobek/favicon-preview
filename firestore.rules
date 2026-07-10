@@ -16,8 +16,14 @@ service cloud.firestore {
                     && request.resource.data.createdAt is number
                     && (!('public' in request.resource.data) || request.resource.data.public is bool);
 
-      // No updates or deletes from clients
-      allow update, delete: if false;
+      // The only permitted update is flipping a preview to public (adding it
+      // to the archive). affectedKeys().hasOnly(['public']) guarantees every
+      // other field is unchanged, and we only ever allow moving toward public.
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['public'])
+                    && request.resource.data.public == true;
+
+      // No deletes from clients
+      allow delete: if false;
     }
   }
 }

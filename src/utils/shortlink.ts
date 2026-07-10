@@ -1,5 +1,5 @@
 import { customAlphabet } from 'nanoid';
-import { doc, setDoc, getDoc, collection, query, where, orderBy, getDocs } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, collection, query, where, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { firebaseConfig } from '../config/firebase.config';
 import type { ArchiveTile, CompressedFavicon, SharedState, ShortlinkDocument } from '../types';
@@ -52,6 +52,21 @@ export async function createShortlink(
     }
   }
   return null;
+}
+
+/**
+ * Flip an existing shortlink to public, adding it to the archive.
+ * Firestore rules only permit changing the `public` field. Returns true on
+ * success, false on failure.
+ */
+export async function setShortlinkPublic(shortId: string): Promise<boolean> {
+  try {
+    await updateDoc(doc(db, 'shortlinks', shortId), { public: true });
+    return true;
+  } catch (error) {
+    console.error('Failed to make shortlink public:', error);
+    return false;
+  }
 }
 
 /**
