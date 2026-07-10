@@ -14,8 +14,12 @@ interface ArchiveProps {
   onNavigate: (path: string) => void;
 }
 
-function isTouchDevice(): boolean {
-  return typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+// Whether the device can hover (mouse/trackpad). Hybrid machines — e.g. a
+// touchscreen laptop used with a mouse — report `hover: hover`, so we key the
+// tooltip off hover capability rather than mere touch support (which would
+// wrongly suppress it on those devices).
+function canHover(): boolean {
+  return typeof window !== 'undefined' && window.matchMedia('(hover: hover)').matches;
 }
 
 export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps) {
@@ -23,7 +27,7 @@ export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps)
   const [error, setError] = useState<string | null>(null);
   const [zoomIndex, setZoomIndex] = useState(DEFAULT_ZOOM_INDEX);
   const tileSize = ZOOM_LEVELS[zoomIndex];
-  const isMobile = isTouchDevice();
+  const hoverCapable = canHover();
 
   const gridRef = useRef<HTMLDivElement>(null);
   const [columnCount, setColumnCount] = useState(1);
@@ -211,8 +215,6 @@ export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps)
             }}
           >
             {tiles.map((tile, i) => {
-              const titleAttr = !isMobile && tile.title ? tile.title : undefined;
-
               // Outline the hovered set as one box per row-run. Borders are
               // inset shadows on an overlay layered above the image so they
               // stay visible over opaque favicons and cause no layout shift.
@@ -233,40 +235,46 @@ export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps)
               }
 
               return (
-                <a
+                <Tooltip
                   key={`${tile.shortId}-${i}`}
-                  href={`/?s=${tile.shortId}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onNavigate(`/?s=${tile.shortId}`);
-                  }}
-                  onMouseEnter={() => setHoveredIndex(i)}
-                  onMouseLeave={() => setHoveredIndex((prev) => (prev === i ? null : prev))}
-                  title={titleAttr}
-                  style={{
-                    width: tileSize,
-                    height: tileSize,
-                    display: 'block',
-                    position: 'relative',
-                  }}
+                  content={tile.title}
+                  position="top"
+                  open={hoverCapable && !!tile.title && hoveredIndex === i}
+                  className="block"
                 >
-                  <img
-                    src={tile.url}
-                    alt={tile.title || ''}
-                    loading="lazy"
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-                  />
-                  <span
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      boxShadow,
-                      transition: 'box-shadow 0.1s',
-                      pointerEvents: 'none',
-                      opacity: 0.5,
+                  <a
+                    href={`/?s=${tile.shortId}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onNavigate(`/?s=${tile.shortId}`);
                     }}
-                  />
-                </a>
+                    onMouseEnter={() => setHoveredIndex(i)}
+                    onMouseLeave={() => setHoveredIndex((prev) => (prev === i ? null : prev))}
+                    style={{
+                      width: tileSize,
+                      height: tileSize,
+                      display: 'block',
+                      position: 'relative',
+                    }}
+                  >
+                    <img
+                      src={tile.url}
+                      alt={tile.title || ''}
+                      loading="lazy"
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                    />
+                    <span
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        boxShadow,
+                        transition: 'box-shadow 0.1s',
+                        pointerEvents: 'none',
+                        opacity: 0.5,
+                      }}
+                    />
+                  </a>
+                </Tooltip>
               );
             })}
           </div>

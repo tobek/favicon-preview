@@ -324,7 +324,7 @@ This document tracks detailed version history, planned features, research findin
    - [x] Sort by `createdAt` desc (newest first)
    - [x] Lazy-load Firestore query on archive nav (not on app load)
    - [x] Click/tap tile → navigate to `/?s=<shortId>`
-   - [x] Desktop hover tooltip with filename, mobile tap-through only
+   - [x] Desktop hover tooltip with filename (reuses the custom `Tooltip` component, driven by `hoveredIndex`), mobile tap-through only
    - [x] Hovering a tile outlines every favicon in its set (same `shortId`); a set that wraps across rows draws one box per row-run. Border is a 2px `inset` box-shadow so it overlaps content — no layout shift/jitter. Row-run breaks are derived from a live column count (`gridWidth / tileSize`, measured via `ResizeObserver`).
    - [x] Loading spinner and error state
    - [x] Page title and meta description set on mount
