@@ -214,7 +214,8 @@ export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps)
               const titleAttr = !isMobile && tile.title ? tile.title : undefined;
 
               // Outline the hovered set as one box per row-run. Borders are
-              // inset shadows so they overlap content and cause no layout shift.
+              // inset shadows on an overlay layered above the image so they
+              // stay visible over opaque favicons and cause no layout shift.
               let boxShadow: string | undefined;
               if (hoveredRange && i >= hoveredRange.start && i <= hoveredRange.end) {
                 const startsRow = i === hoveredRange.start || i % columnCount === 0;
@@ -246,8 +247,7 @@ export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps)
                     width: tileSize,
                     height: tileSize,
                     display: 'block',
-                    boxShadow,
-                    transition: 'box-shadow 0.1s',
+                    position: 'relative',
                   }}
                 >
                   <img
@@ -255,6 +255,16 @@ export function Archive({ isDarkMode, onThemeToggle, onNavigate }: ArchiveProps)
                     alt={tile.title || ''}
                     loading="lazy"
                     style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      boxShadow,
+                      transition: 'box-shadow 0.1s',
+                      pointerEvents: 'none',
+                      opacity: 0.5,
+                    }}
                   />
                 </a>
               );
