@@ -51,6 +51,7 @@ export function Tooltip({ content, children, className, position = 'top', open, 
       flip({ crossAxis: false }),
       // Slide horizontally to stay within the viewport (fixes offscreen edges).
       shift({ padding: 8 }),
+      // eslint-disable-next-line react-hooks/refs -- Floating UI reads the ref in middleware, not during render
       arrow({ element: arrowRef }),
     ],
   });
@@ -86,6 +87,7 @@ export function Tooltip({ content, children, className, position = 'top', open, 
       {isMounted && (
         <FloatingPortal>
           <div
+            // eslint-disable-next-line react-hooks/refs -- refs.setFloating is a stable callback ref, not a ref value read
             ref={refs.setFloating}
             style={floatingStyles}
             className={`z-50 ${interactive ? 'pointer-events-auto' : 'pointer-events-none'}`}
